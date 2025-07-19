@@ -1,0 +1,77 @@
+body {
+  font-family: sans-serif;
+  text-align: center;
+  background-color: #f0f0f0;
+  padding: 20px;
+  margin: 0;
+}
+
+h1 {
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.controls {
+  margin-bottom: 30px;
+}
+
+button {
+  font-size: 18px;
+  padding: 10px 20px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+/* 🎲 プレイヤー入力エリア */
+#playerInputArea {
+  margin-bottom: 20px;
+}
+
+#playerInputArea input {
+  margin: 5px;
+  padding: 8px;
+  font-size: 16px;
+  width: 200px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+/* 👤 プレイヤー順番表示 */
+#playerOrder {
+  margin-top: 10px;
+  font-weight: bold;
+  font-size: 18px;
+  color: #444;
+}
+
+/* 📦 地形カウント表示欄 */
+#terrainCountDisplay {
+  margin: 20px auto;
+  padding: 10px;
+  max-width: 400px;
+  background-color: #ffffff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
+  color: #333;
+}
+
+/* 🌍 SVGマップを画面サイズに対応 */
+.svg-container {
+  width: 100%;
+  max-width: 800px;
+  margin: auto;
+}
+
+svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}

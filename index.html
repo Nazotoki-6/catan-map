@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>カタンマップ生成アプリ</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>カタンマップ生成アプリ</h1>
+
+  <!-- プレイヤー入力欄 -->
+  <div id="playerInputArea">
+    <input type="text" placeholder="プレイヤー1の名前">
+    <input type="text" placeholder="プレイヤー2の名前">
+    <input type="text" placeholder="プレイヤー3の名前">
+    <input type="text" placeholder="プレイヤー4の名前">
+    <button id="shufflePlayers">順番を決める</button>
+  </div>
+
+  <!-- 順番表示 -->
+  <div id="playerOrder"></div>
+
+  <!-- 地形枚数表示 -->
+  <div id="terrainCountDisplay"></div>
+
+  <!-- 地図表示ボタン -->
+  <div class="controls">
+    <button id="generateButton" disabled>マップを自動生成</button>
+  </div>
+
+  <!-- SVGマップ -->
+  <div class="svg-container">
+    <svg id="map" viewBox="0 0 800 700" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
