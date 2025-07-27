@@ -29,7 +29,6 @@ button:hover {
   background-color: #45a049;
 }
 
-/* 🎲 プレイヤー入力エリア */
 #playerInputArea {
   margin-bottom: 20px;
 }
@@ -43,7 +42,6 @@ button:hover {
   border: 1px solid #ccc;
 }
 
-/* 👤 プレイヤー順番表示 */
 #playerOrder {
   margin-top: 10px;
   font-weight: bold;
@@ -51,7 +49,6 @@ button:hover {
   color: #444;
 }
 
-/* 📦 地形カウント表示欄 */
 #terrainCountDisplay {
   margin: 20px auto;
   padding: 10px;
@@ -63,7 +60,17 @@ button:hover {
   color: #333;
 }
 
-/* 🌍 SVGマップを画面サイズに対応 */
+#seaOrderDisplay {
+  margin: 10px auto 20px;
+  padding: 10px;
+  max-width: 500px;
+  background-color: #e6f7ff;
+  border: 1px solid #0077cc;
+  border-radius: 8px;
+  font-size: 16px;
+  color: #004466;
+}
+
 .svg-container {
   width: 100%;
   max-width: 800px;
