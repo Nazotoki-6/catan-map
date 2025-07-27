@@ -12,22 +12,16 @@ const axialLayout = [
   { q: -2, r: 2 }, { q: -1, r: 2 }, { q: 0, r: 2 }
 ];
 
-const harborPositions = [
-  { q: -3, r: 2 }, { q: -2, r: 3 }, { q: -1, r: -2 },
-  { q: 1, r: -3 }, { q: 3, r: -3 }, { q: 3, r: -1 },
-  { q: 0, r: 3 }, { q: -3, r: 0 }, { q: 2, r: 1 }
-];
-
-const harborLabels = ["木", "煉瓦", "羊", "麦", "岩", "？", "？", "？", "？"];
-
 let positions = [];
 
 document.getElementById("generateButton").addEventListener("click", generateMap);
+
 function generateMap() {
   const svg = document.getElementById("map");
   svg.innerHTML = "";
 
-  drawSeaTiles(svg);
+  drawStartTile(svg);
+
   preparePositions();
 
   const terrainPool = getShuffledTerrainList();
@@ -81,9 +75,60 @@ function generateMap() {
     if (num !== null) drawNumber(svg, positions[i].x, positions[i].y, num);
   });
 
-  drawHarbors(svg);
-  showTerrainCounts(); // 地形枚数を表示
+  showTerrainCounts();
+  showSeaOrder(); // 🆕 海タイル順の表示
 }
+
+function drawStartTile(svg) {
+  const p1 = axialToPixel(1, -3);
+  const p2 = axialToPixel(2, -3);
+  const offsetY = -100;
+
+  const topLeftX = p1.x - 50;
+  const topRightX = p2.x + 50;
+  const topY = p1.y - 20 + offsetY;
+  const bottomLeftX = p1.x - 80;
+  const bottomRightX = p2.x + 80;
+  const bottomY = p1.y + 80 + offsetY;
+
+  const points = [
+    [topLeftX, topY],
+    [topRightX, topY],
+    [bottomRightX, bottomY],
+    [bottomLeftX, bottomY]
+  ].map(p => `${p[0]},${p[1]}`).join(" ");
+
+  const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+  polygon.setAttribute("points", points);
+  polygon.setAttribute("fill", "#87CEFA");
+  polygon.setAttribute("stroke", "#333");
+  polygon.setAttribute("stroke-width", "2");
+  svg.appendChild(polygon);
+
+  const centerX = (topLeftX + topRightX) / 2;
+  const textY = topY + 40;
+  const arrowY = textY + 30;
+
+  const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  text.setAttribute("x", centerX);
+  text.setAttribute("y", textY);
+  text.setAttribute("text-anchor", "middle");
+  text.setAttribute("font-size", "22");
+  text.setAttribute("fill", "black");
+  text.textContent = "スタート";
+  svg.appendChild(text);
+
+  const arrow = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  arrow.setAttribute("x", centerX);
+  arrow.setAttribute("y", arrowY);
+  arrow.setAttribute("text-anchor", "middle");
+  arrow.setAttribute("font-size", "30");
+  arrow.setAttribute("fill", "red");
+  arrow.setAttribute("font-weight", "bold");
+  arrow.textContent = Math.random() < 0.5 ? "→" : "←";
+  svg.appendChild(arrow);
+}
+
 function preparePositions() {
   positions = axialLayout.map(({ q, r }, index) => {
     const { x, y } = axialToPixel(q, r);
@@ -143,6 +188,7 @@ function drawNumber(svg, cx, cy, num) {
   text.textContent = num;
   svg.appendChild(text);
 }
+
 function getShuffledTerrainList() {
   const woodCount = Math.random() < 0.5 ? 4 : 3;
   const brickCount = 7 - woodCount;
@@ -174,70 +220,6 @@ function assignTerrain(index, terrainPool) {
   return false;
 }
 
-function getSeaTileCoordinates() {
-  const islandSet = new Set(axialLayout.map(p => `${p.q},${p.r}`));
-  const seaSet = new Set();
-  const directions = [[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]];
-
-  axialLayout.forEach(({ q, r }) => {
-    directions.forEach(([dq, dr]) => {
-      const neighbor = `${q + dq},${r + dr}`;
-      if (!islandSet.has(neighbor)) seaSet.add(neighbor);
-    });
-  });
-
-  return Array.from(seaSet).map(str => {
-    const [q, r] = str.split(",").map(Number);
-    return { q, r };
-  });
-}
-
-function drawSeaTiles(svg) {
-  getSeaTileCoordinates().forEach(({ q, r }) => {
-    const { x, y } = axialToPixel(q, r);
-    drawHex(svg, x, y, "#87CEFA");
-  });
-}
-function getShuffledHarborData() {
-  let valid = false;
-  let labels = [];
-
-  while (!valid) {
-    const shuffled = shuffleCopy(harborLabels);
-    valid = true;
-    for (let i = 0; i < shuffled.length - 1; i++) {
-      if (shuffled[i] === "？" && shuffled[i + 1] === "？") {
-        valid = false;
-        break;
-      }
-    }
-    if (valid) labels = shuffled;
-  }
-
-  return harborPositions.map((pos, i) => ({
-    q: pos.q,
-    r: pos.r,
-    label: labels[i]
-  }));
-}
-
-function drawHarbors(svg) {
-  const harborData = getShuffledHarborData();
-
-  harborData.forEach(({ q, r, label }) => {
-    const { x, y } = axialToPixel(q, r);
-    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    text.setAttribute("x", x);
-    text.setAttribute("y", y + 5);
-    text.setAttribute("text-anchor", "middle");
-    text.setAttribute("font-size", "16");
-    text.setAttribute("fill", "black");
-    text.setAttribute("font-weight", "bold");
-    text.textContent = label;
-    svg.appendChild(text);
-  });
-}
-
 function shuffleArray(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -250,7 +232,32 @@ function shuffleCopy(arr) {
   shuffleArray(copy);
   return copy;
 }
-// プレイヤーの順番をランダムに表示
+
+function showTerrainCounts() {
+  const counts = { 木: 0, 煉瓦: 0, 羊: 0, 麦: 0, 岩: 0, 砂漠: 0 };
+
+  for (const pos of positions) {
+    const type = pos.tile?.type;
+    if (!type) continue;
+    counts[type]++;
+  }
+
+  const order = ["木", "煉瓦", "羊", "麦", "岩", "砂漠"];
+  let html = "<strong>地形タイルの内訳:</strong><br>";
+  for (const type of order) {
+    html += `${type} --- ${counts[type]}枚<br>`;
+  }
+
+  document.getElementById("terrainCountDisplay").innerHTML = html;
+}
+
+function showSeaOrder() {
+  const labels = ["木", "煉瓦", "羊", "麦", "岩",  "？"];
+  const shuffled = shuffleCopy(labels);
+  const html = "<strong>海タイルの順番:</strong><br>スタート から " + shuffled.join(" → ");
+  document.getElementById("seaOrderDisplay").innerHTML = html;
+}
+
 document.getElementById("shufflePlayers").addEventListener("click", () => {
   const inputs = document.querySelectorAll("#playerInputArea input");
   const names = Array.from(inputs)
@@ -264,23 +271,5 @@ document.getElementById("shufflePlayers").addEventListener("click", () => {
 
   const shuffled = shuffleCopy(names);
   document.getElementById("playerOrder").textContent = "順番: " + shuffled.join(" → ");
-
   document.getElementById("generateButton").disabled = false;
 });
-
-// 地形ごとの枚数を表示
-function showTerrainCounts() {
-  const counts = {};
-  for (const pos of positions) {
-    const type = pos.tile?.type;
-    if (!type || type === "砂漠") continue;
-    counts[type] = (counts[type] || 0) + 1;
-  }
-
-  let html = "<strong>地形タイルの内訳:</strong><br>";
-  for (const [type, count] of Object.entries(counts)) {
-    html += `${type} --- ${count}枚<br>`;
-  }
-
-  document.getElementById("terrainCountDisplay").innerHTML = html;
-}
