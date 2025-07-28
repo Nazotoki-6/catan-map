@@ -20,8 +20,6 @@ function generateMap() {
   const svg = document.getElementById("map");
   svg.innerHTML = "";
 
-  drawStartTile(svg);
-
   preparePositions();
 
   const terrainPool = getShuffledTerrainList();
@@ -75,58 +73,9 @@ function generateMap() {
     if (num !== null) drawNumber(svg, positions[i].x, positions[i].y, num);
   });
 
+  drawStartTile(svg);
   showTerrainCounts();
-  showSeaOrder(); // 🆕 海タイル順の表示
-}
-
-function drawStartTile(svg) {
-  const p1 = axialToPixel(1, -3);
-  const p2 = axialToPixel(2, -3);
-  const offsetY = -100;
-
-  const topLeftX = p1.x - 50;
-  const topRightX = p2.x + 50;
-  const topY = p1.y - 20 + offsetY;
-  const bottomLeftX = p1.x - 80;
-  const bottomRightX = p2.x + 80;
-  const bottomY = p1.y + 80 + offsetY;
-
-  const points = [
-    [topLeftX, topY],
-    [topRightX, topY],
-    [bottomRightX, bottomY],
-    [bottomLeftX, bottomY]
-  ].map(p => `${p[0]},${p[1]}`).join(" ");
-
-  const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-  polygon.setAttribute("points", points);
-  polygon.setAttribute("fill", "#87CEFA");
-  polygon.setAttribute("stroke", "#333");
-  polygon.setAttribute("stroke-width", "2");
-  svg.appendChild(polygon);
-
-  const centerX = (topLeftX + topRightX) / 2;
-  const textY = topY + 40;
-  const arrowY = textY + 30;
-
-  const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-  text.setAttribute("x", centerX);
-  text.setAttribute("y", textY);
-  text.setAttribute("text-anchor", "middle");
-  text.setAttribute("font-size", "22");
-  text.setAttribute("fill", "black");
-  text.textContent = "スタート";
-  svg.appendChild(text);
-
-  const arrow = document.createElementNS("http://www.w3.org/2000/svg", "text");
-  arrow.setAttribute("x", centerX);
-  arrow.setAttribute("y", arrowY);
-  arrow.setAttribute("text-anchor", "middle");
-  arrow.setAttribute("font-size", "30");
-  arrow.setAttribute("fill", "red");
-  arrow.setAttribute("font-weight", "bold");
-  arrow.textContent = Math.random() < 0.5 ? "→" : "←";
-  svg.appendChild(arrow);
+  showSeaOrder();
 }
 
 function preparePositions() {
@@ -190,10 +139,21 @@ function drawNumber(svg, cx, cy, num) {
 }
 
 function getShuffledTerrainList() {
-  const woodCount = Math.random() < 0.5 ? 4 : 3;
-  const brickCount = 7 - woodCount;
-  const wheatCount = Math.random() < 0.5 ? 4 : 3;
-  const oreCount = 7 - wheatCount;
+  const useFixed = document.getElementById("fixedTerrain")?.checked;
+
+  let woodCount, brickCount, wheatCount, oreCount;
+
+  if (useFixed) {
+    woodCount = 4;
+    brickCount = 3;
+    wheatCount = 4;
+    oreCount = 3;
+  } else {
+    woodCount = Math.random() < 0.5 ? 4 : 3;
+    brickCount = 7 - woodCount;
+    wheatCount = Math.random() < 0.5 ? 4 : 3;
+    oreCount = 7 - wheatCount;
+  }
 
   return shuffleCopy([
     ...Array(woodCount).fill({ type: "木", color: "#228B22" }),
@@ -220,6 +180,56 @@ function assignTerrain(index, terrainPool) {
   return false;
 }
 
+function drawStartTile(svg) {
+  const p1 = axialToPixel(1, -3);
+  const p2 = axialToPixel(2, -3);
+  const offsetY = -60;
+
+  const topLeftX = p1.x - 50;
+  const topRightX = p2.x + 50;
+  const topY = p1.y - 20 + offsetY;
+  const bottomLeftX = p1.x - 80;
+  const bottomRightX = p2.x + 80;
+  const bottomY = p1.y + 80 + offsetY;
+
+  const points = [
+    [topLeftX, topY],
+    [topRightX, topY],
+    [bottomRightX, bottomY],
+    [bottomLeftX, bottomY]
+  ].map(p => `${p[0]},${p[1]}`).join(" ");
+
+  const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+  polygon.setAttribute("points", points);
+  polygon.setAttribute("fill", "#87CEFA");
+  polygon.setAttribute("stroke", "#333");
+  polygon.setAttribute("stroke-width", "2");
+  svg.appendChild(polygon);
+
+  const centerX = (topLeftX + topRightX) / 2;
+  const textY = topY + 40;
+  const arrowY = textY + 60;
+
+  const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  text.setAttribute("x", centerX);
+  text.setAttribute("y", textY);
+  text.setAttribute("text-anchor", "middle");
+  text.setAttribute("font-size", "22");
+  text.setAttribute("fill", "black");
+  text.textContent = "スタート";
+  svg.appendChild(text);
+
+  const arrow = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  arrow.setAttribute("x", centerX);
+  arrow.setAttribute("y", arrowY);
+  arrow.setAttribute("text-anchor", "middle");
+  arrow.setAttribute("font-size", "80");
+  arrow.setAttribute("fill", "red");
+  arrow.setAttribute("font-weight", "bold");
+  arrow.textContent = Math.random() < 0.5 ? "→" : "←";
+  svg.appendChild(arrow);
+}
+
 function shuffleArray(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -233,19 +243,32 @@ function shuffleCopy(arr) {
   return copy;
 }
 
-function showTerrainCounts() {
-  const counts = { 木: 0, 煉瓦: 0, 羊: 0, 麦: 0, 岩: 0, 砂漠: 0 };
+document.getElementById("shufflePlayers").addEventListener("click", () => {
+  const inputs = document.querySelectorAll("#playerInputArea input");
+  const names = Array.from(inputs).map(input => input.value.trim()).filter(name => name !== "");
 
-  for (const pos of positions) {
-    const type = pos.tile?.type;
-    if (!type) continue;
-    counts[type]++;
+  if (names.length < 2) {
+    alert("プレイヤーは最低2人必要です。");
+    return;
   }
 
-  const order = ["木", "煉瓦", "羊", "麦", "岩", "砂漠"];
+  const shuffled = shuffleCopy(names);
+  document.getElementById("playerOrder").textContent = "順番: " + shuffled.join(" → ");
+  document.getElementById("generateButton").disabled = false;
+});
+
+function showTerrainCounts() {
+  const counts = {};
+  for (const pos of positions) {
+    const type = pos.tile?.type;
+    if (!type ) continue;
+    counts[type] = (counts[type] || 0) + 1;
+  }
+
   let html = "<strong>地形タイルの内訳:</strong><br>";
-  for (const type of order) {
-    html += `${type} --- ${counts[type]}枚<br>`;
+  const order = ["木", "煉瓦", "羊", "麦", "岩","砂漠"];
+  for (const key of order) {
+    html += `${key} --- ${counts[key] || 0}枚<br>`;
   }
 
   document.getElementById("terrainCountDisplay").innerHTML = html;
@@ -257,19 +280,3 @@ function showSeaOrder() {
   const html = "<strong>海タイルの順番:</strong><br>スタート から " + shuffled.join(" → ");
   document.getElementById("seaOrderDisplay").innerHTML = html;
 }
-
-document.getElementById("shufflePlayers").addEventListener("click", () => {
-  const inputs = document.querySelectorAll("#playerInputArea input");
-  const names = Array.from(inputs)
-    .map(input => input.value.trim())
-    .filter(name => name !== "");
-
-  if (names.length < 2) {
-    alert("プレイヤーは最低2人必要です。");
-    return;
-  }
-
-  const shuffled = shuffleCopy(names);
-  document.getElementById("playerOrder").textContent = "順番: " + shuffled.join(" → ");
-  document.getElementById("generateButton").disabled = false;
-});
