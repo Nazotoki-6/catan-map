@@ -1,89 +1,107 @@
+/* ===============================
+   全体レイアウト
+=============================== */
 body {
-  font-family: sans-serif;
-  text-align: center;
+  font-family: "メイリオ", sans-serif;
   background-color: #f0f0f0;
-  padding: 20px;
   margin: 0;
+  padding: 0;
 }
 
+.container {
+  width: 95%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 15px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border-radius: 8px;
+}
+
+/* タイトル */
 h1 {
-  color: #333;
-  margin-bottom: 20px;
+  font-size: 1.8em;
+  text-align: center;
+  margin-bottom: 10px;
 }
 
-.controls {
-  margin-bottom: 30px;
-}
-
-button {
-  font-size: 18px;
-  padding: 10px 20px;
-  background-color: #4caf50;
-  color: white;
-  border: none;
+/* プレイヤー選択エリア */
+#playerInputArea {
+  background: #f9f9f9;
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-bottom: 12px;
   border-radius: 6px;
-  cursor: pointer;
 }
 
+.player-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-bottom: 8px;
+}
+
+.player-list label {
+  cursor: pointer;
+  background: #fff;
+  border: 1px solid #ccc;
+  padding: 4px 8px;
+  border-radius: 4px;
+  user-select: none;
+}
+
+.player-list input {
+  margin-right: 4px;
+}
+
+/* ボタン */
+button {
+  background-color: #4CAF50;
+  color: white;
+  padding: 6px 14px;
+  margin: 5px 0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
 button:hover {
   background-color: #45a049;
 }
 
-#playerInputArea {
-  margin-bottom: 20px;
-}
-
-#playerInputArea input {
-  margin: 5px;
-  padding: 8px;
-  font-size: 16px;
-  width: 200px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-}
-
-#terrainOptions {
-  margin: 10px 0;
-  font-size: 16px;
-}
-
+/* 順番表示 */
 #playerOrder {
-  margin-top: 10px;
   font-weight: bold;
-  font-size: 18px;
-  color: #444;
+  font-size: 1.1em;
+  margin: 8px 0;
 }
 
-#terrainCountDisplay {
-  margin: 20px auto;
-  padding: 10px;
-  max-width: 400px;
-  background-color: #ffffff;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 16px;
-  color: #333;
+/* 地形カウント & 海タイル順 */
+#terrainCountDisplay, #seaOrderDisplay {
+  background: #fafafa;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-top: 8px;
+  font-size: 14px;
 }
 
-#seaOrderDisplay {
-  margin: 10px auto 20px;
-  padding: 10px;
-  max-width: 500px;
-  background-color: #e6f7ff;
-  border: 1px solid #0077cc;
-  border-radius: 8px;
-  font-size: 16px;
-  color: #004466;
-}
-
-.svg-container {
-  width: 100%;
-  max-width: 800px;
-  margin: auto;
-}
-
-svg {
-  width: 100%;
-  height: auto;
+/* マップ */
+#map {
   display: block;
+  margin: 12px auto;
+  background-color: #e0f7fa;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+/* スマホ対応 */
+@media (max-width: 600px) {
+  .player-list {
+    flex-direction: column;
+    gap: 4px;
+  }
+  button {
+    width: 100%;
+  }
 }
