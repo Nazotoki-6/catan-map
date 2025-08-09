@@ -3,26 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>カタンマップ生成</title>
+  <title>カタンマップ生成アプリ</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>カタンマップ生成</h1>
+  <h1>カタンマップ生成アプリ</h1>
 
-  <!-- プレイヤー入力欄 -->
-  <div id="playerInputArea">
-    <input type="text" placeholder="プレイヤー1の名前">
-    <input type="text" placeholder="プレイヤー2の名前">
-    <input type="text" placeholder="プレイヤー3の名前">
-    <input type="text" placeholder="プレイヤー4の名前">
-    <button id="shufflePlayers">順番を決める</button>
-  </div>
+  <!-- ✅ プレイヤー選択（JSで6人のチェックボックスを自動生成します） -->
+  <div id="playerInputArea"></div>
 
-  <!-- 地形枚数固定チェックボックス -->
-  <div id="terrainOptions">
+  <!-- ✅ 地形枚数固定オプション（任意。未チェック=ランダム） -->
+  <div id="terrainOptions" style="margin: 10px 0;">
     <label>
-      <input type="checkbox" id="fixedTerrain">
-      地形枚数を固定（木4, レンガ3, 羊4, 麦4, 岩3）
+      <input type="checkbox" id="fixedTerrain" />
+      地形枚数を固定（木4・煉瓦3・羊4・麦4・岩3）
     </label>
   </div>
 
@@ -35,9 +29,16 @@
   <!-- 海タイル順番表示 -->
   <div id="seaOrderDisplay"></div>
 
-  <!-- 地図表示ボタン -->
+  <!-- ✅ 一発ボタン：順番決定＆マップ生成 -->
   <div class="controls">
-    <button id="generateButton" disabled>マップを自動生成</button>
+    <button id="decideAndGenerate">順番を決めてマップ生成</button>
+
+    <!-- 互換用：旧コードで参照していても落ちないように残す（非表示） -->
+    <button id="generateButton" disabled style="display:none;">マップを自動生成</button>
+
+    <!-- （任意）ルールページを使う場合はコメントアウトを外してください
+    <a href="rules.html" class="rule-link" target="_blank">📖 ルールを見る</a>
+    -->
   </div>
 
   <!-- SVGマップ -->
@@ -48,3 +49,4 @@
   <script src="script.js"></script>
 </body>
 </html>
+
