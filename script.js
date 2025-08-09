@@ -411,6 +411,6 @@ function showTerrainCounts() {
 function showSeaOrder() {
   const labels = ["木", "煉瓦", "羊", "麦", "岩", "？"];
   const shuffled = shuffleCopy(labels);
-  const html = "<strong>海タイルの順番:</strong><br>スタート → " + shuffled.join(" → ");
+  const html = "<strong>海タイルの順番:</strong><br>スタート から " + shuffled.join(" → ");
   document.getElementById("seaOrderDisplay").innerHTML = html;
 }
