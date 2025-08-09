@@ -1,3 +1,85 @@
+// ==============================
+// 固定プレイヤー設定（6人）
+// ==============================
+const DEFAULT_PLAYERS = ["かず", "たけ", "たろう", "つよし", "ゆか", "りさ"];
+
+// 起動時：プレイヤー選択チェックボックスを描画
+document.addEventListener("DOMContentLoaded", () => {
+  const wrap = document.getElementById("playerInputArea");
+  if (!wrap) return;
+
+  const title = document.createElement("div");
+  title.style.marginBottom = "6px";
+  title.style.fontWeight = "bold";
+  title.textContent = "参加するプレイヤーを選んでください";
+  wrap.appendChild(title);
+
+  const list = document.createElement("div");
+  list.className = "player-list";
+  DEFAULT_PLAYERS.forEach((name, i) => {
+    const id = `player_${i}`;
+    const label = document.createElement("label");
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.id = id;
+    cb.value = name;
+    cb.checked = true; // デフォルトで全員ON
+    label.appendChild(cb);
+    label.appendChild(document.createTextNode(" " + name));
+    list.appendChild(label);
+  });
+  wrap.appendChild(list);
+
+  const toggle = document.createElement("button");
+  toggle.textContent = "全員ON/OFF";
+  toggle.style.marginBottom = "10px";
+  toggle.onclick = () => {
+    const inputs = list.querySelectorAll("input[type=checkbox]");
+    const allChecked = Array.from(inputs).every(i => i.checked);
+    inputs.forEach(i => i.checked = !allChecked);
+  };
+  wrap.appendChild(toggle);
+});
+
+// ==============================
+// ユーティリティ（シャッフル）
+// ==============================
+function shuffleCopy(array) {
+  const arr = array.slice();
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
+// ==============================
+// 「順番決定＆マップ生成」ボタン
+// ==============================
+document.getElementById("decideAndGenerate").addEventListener("click", () => {
+  const checked = Array.from(document.querySelectorAll("#playerInputArea input[type=checkbox]:checked"))
+                        .map(cb => cb.value);
+
+  if (checked.length < 2) {
+    alert("プレイヤーは最低2人必要です。");
+    return;
+  }
+
+  const order = shuffleCopy(checked);
+  document.getElementById("playerOrder").textContent = "順番: " + order.join(" → ");
+
+  generateMap();
+});
+
+// ==============================
+// カタンマップ生成に必要な定数・変数
+// ==============================
 const hexRadius = 50;
 const hexWidth = Math.sqrt(3) * hexRadius;
 const hexHeight = 2 * hexRadius;
@@ -12,86 +94,71 @@ const axialLayout = [
   { q: -2, r: 2 }, { q: -1, r: 2 }, { q: 0, r: 2 }
 ];
 
-let positions = [];
+const terrainTypes = [
+  { type: "木", color: "#228B22" },
+  { type: "煉瓦", color: "#B22222" },
+  { type: "羊", color: "#7CFC00" },
+  { type: "麦", color: "#DAA520" },
+  { type: "岩", color: "#A9A9A9" },
+  { type: "砂漠", color: "#EDC9Af" }
+];
 
-document.getElementById("generateButton").addEventListener("click", generateMap);
+let positions = []; // { index, q, r, x, y, neighbors[], tile }
 
-function generateMap() {
-  const svg = document.getElementById("map");
-  svg.innerHTML = "";
+// ==============================
+// 地形プール（固定/ランダム切り替え）
+// ==============================
+function getShuffledTerrainList() {
+  const fixed = document.getElementById("fixedTerrain")?.checked;
+  let pool;
 
-  preparePositions();
-
-  const terrainPool = getShuffledTerrainList();
-  if (!assignTerrain(0, terrainPool)) {
-    alert("地形配置に失敗しました。");
-    return;
+  if (fixed) {
+    pool = [
+      ...Array(4).fill("木"),
+      ...Array(3).fill("煉瓦"),
+      ...Array(4).fill("羊"),
+      ...Array(4).fill("麦"),
+      ...Array(3).fill("岩"),
+      "砂漠"
+    ];
+  } else {
+    // ランダム：木＋煉瓦=7、麦＋岩=7、羊=4、砂漠=1
+    const woodCount = Math.random() < 0.5 ? 4 : 3;
+    const brickCount = 7 - woodCount;
+    const wheatCount = Math.random() < 0.5 ? 4 : 3;
+    const oreCount = 7 - wheatCount;
+    pool = [
+      ...Array(woodCount).fill("木"),
+      ...Array(brickCount).fill("煉瓦"),
+      ...Array(4).fill("羊"),
+      ...Array(wheatCount).fill("麦"),
+      ...Array(oreCount).fill("岩"),
+      "砂漠"
+    ];
   }
 
-  positions.forEach(pos => drawHex(svg, pos.x, pos.y, pos.tile.color));
-
-  const numbers = [...numberTokens];
-  let validNumbers = false;
-  let placed = [];
-
-  while (!validNumbers) {
-    shuffleArray(numbers);
-    placed = [];
-    validNumbers = true;
-    let idx = 0;
-    const terrainToRedToken = {};
-
-    for (let pos of positions) {
-      if (pos.tile.type === "砂漠") {
-        placed.push(null);
-        continue;
-      }
-
-      const num = numbers[idx++];
-      const terrainType = pos.tile.type;
-      const neighbors = pos.neighbors.map(i => placed[i]).filter(n => n !== null);
-
-      if ((num === 6 || num === 8) && (neighbors.includes(6) || neighbors.includes(8))) {
-        validNumbers = false;
-        break;
-      }
-
-      if ((num === 6 || num === 8) && terrainToRedToken[terrainType]) {
-        validNumbers = false;
-        break;
-      }
-
-      if (num === 6 || num === 8) {
-        terrainToRedToken[terrainType] = num;
-      }
-
-      placed.push(num);
-    }
-  }
-
-  placed.forEach((num, i) => {
-    if (num !== null) drawNumber(svg, positions[i].x, positions[i].y, num);
-  });
-
-  drawStartTile(svg);
-  showTerrainCounts();
-  showSeaOrder();
+  // オブジェクト化してシャッフル
+  const arr = pool.map(t => terrainTypes.find(x => x.type === t));
+  return shuffleCopy(arr);
 }
 
+// ==============================
+// 隣接計算（六角グリッド）
+// ==============================
 function preparePositions() {
   positions = axialLayout.map(({ q, r }, index) => {
     const { x, y } = axialToPixel(q, r);
     return { index, q, r, x, y, neighbors: [], tile: null };
   });
 
-  positions.forEach((pos, i) => {
-    positions.forEach((other, j) => {
-      if (i !== j) {
-        const dq = Math.abs(pos.q - other.q);
-        const dr = Math.abs(pos.r - other.r);
-        const ds = Math.abs((pos.q + pos.r) - (other.q + other.r));
-        if (Math.max(dq, dr, ds) === 1) pos.neighbors.push(j);
-      }
+  // 六角距離1を隣接とする
+  positions.forEach((a, i) => {
+    positions.forEach((b, j) => {
+      if (i === j) return;
+      const dq = Math.abs(a.q - b.q);
+      const dr = Math.abs(a.r - b.r);
+      const ds = Math.abs((a.q + a.r) - (b.q + b.r));
+      if (Math.max(dq, dr, ds) === 1) a.neighbors.push(j);
     });
   });
 }
@@ -103,6 +170,110 @@ function axialToPixel(q, r) {
   };
 }
 
+// ==============================
+// 地形割り当て：同地形の隣接禁止（バックトラッキング）
+// ==============================
+function assignTerrainWithConstraints(terrainPool) {
+  // 難しい地点から埋めると成功率UP：次数（隣接数）が多い順に並べ替え
+  const order = positions
+    .map((p, i) => ({ i, deg: p.neighbors.length }))
+    .sort((a, b) => b.deg - a.deg)
+    .map(o => o.i);
+
+  function dfs(posIdx, pool) {
+    if (posIdx >= order.length) return true;
+    const idx = order[posIdx];
+
+    for (let i = 0; i < pool.length; i++) {
+      const t = pool[i];
+      // 隣接に同種があれば不可
+      const conflict = positions[idx].neighbors.some(nIdx => positions[nIdx].tile?.type === t.type);
+      if (conflict) continue;
+
+      positions[idx].tile = t;
+
+      const next = pool.slice();
+      next.splice(i, 1);
+      if (dfs(posIdx + 1, next)) return true;
+
+      positions[idx].tile = null;
+    }
+    return false;
+  }
+
+  return dfs(0, terrainPool.slice());
+}
+
+// ==============================
+// 数字割り当て：同地形で同じ数字NG、6/8隣接NG（バックトラッキング）
+// ==============================
+function assignNumbersWithConstraints() {
+  const nums = shuffleCopy(numberTokens); // ちょっとランダム性を出す
+  const usedByTerrain = new Map(); // 地形タイプ -> Set(使った数字)
+  positions.forEach(p => {
+    if (p.tile && !usedByTerrain.has(p.tile.type)) usedByTerrain.set(p.tile.type, new Set());
+  });
+
+  const placed = Array(positions.length).fill(null);
+
+  // 難所（隣接多い）から置く
+  const order = positions
+    .map((p, i) => ({ i, deg: p.neighbors.length, desert: p.tile.type === "砂漠" }))
+    .sort((a, b) => (b.deg - a.deg)) // 砂漠は後回しになる
+    .map(o => o.i);
+
+  function okToPlace(i, num) {
+    const tileType = positions[i].tile.type;
+    if (tileType === "砂漠") return false;
+
+    // 同地形で同じ数字はNG
+    const used = usedByTerrain.get(tileType);
+    if (used.has(num)) return false;
+
+    // 6 or 8 は隣接NG
+    if (num === 6 || num === 8) {
+      for (const nIdx of positions[i].neighbors) {
+        const nNum = placed[nIdx];
+        if (nNum === 6 || nNum === 8) return false;
+      }
+    }
+    return true;
+  }
+
+  function dfs(k, pool) {
+    if (k >= order.length) return true;
+    const i = order[k];
+    if (positions[i].tile.type === "砂漠") {
+      placed[i] = null;
+      return dfs(k + 1, pool);
+    }
+
+    for (let p = 0; p < pool.length; p++) {
+      const num = pool[p];
+      if (!okToPlace(i, num)) continue;
+
+      placed[i] = num;
+      const set = usedByTerrain.get(positions[i].tile.type);
+      set.add(num);
+
+      const next = pool.slice();
+      next.splice(p, 1);
+      if (dfs(k + 1, next)) return true;
+
+      // backtrack
+      set.delete(num);
+      placed[i] = null;
+    }
+    return false;
+  }
+
+  if (!dfs(0, nums)) return null;
+  return placed;
+}
+
+// ==============================
+// 描画系
+// ==============================
 function drawHex(svg, cx, cy, fill) {
   const points = [];
   for (let i = 0; i < 6; i++) {
@@ -133,150 +304,113 @@ function drawNumber(svg, cx, cy, num) {
   text.setAttribute("y", cy + 5);
   text.setAttribute("text-anchor", "middle");
   text.setAttribute("font-size", "16");
+  text.setAttribute("font-weight", "bold");
   text.setAttribute("fill", num === 6 || num === 8 ? "red" : "black");
   text.textContent = num;
   svg.appendChild(text);
 }
 
-function getShuffledTerrainList() {
-  const useFixed = document.getElementById("fixedTerrain")?.checked;
-
-  let woodCount, brickCount, wheatCount, oreCount;
-
-  if (useFixed) {
-    woodCount = 4;
-    brickCount = 3;
-    wheatCount = 4;
-    oreCount = 3;
-  } else {
-    woodCount = Math.random() < 0.5 ? 4 : 3;
-    brickCount = 7 - woodCount;
-    wheatCount = Math.random() < 0.5 ? 4 : 3;
-    oreCount = 7 - wheatCount;
-  }
-
-  return shuffleCopy([
-    ...Array(woodCount).fill({ type: "木", color: "#228B22" }),
-    ...Array(brickCount).fill({ type: "煉瓦", color: "#B22222" }),
-    ...Array(4).fill({ type: "羊", color: "#ADFF2F" }),
-    ...Array(wheatCount).fill({ type: "麦", color: "#FFD700" }),
-    ...Array(oreCount).fill({ type: "岩", color: "#A9A9A9" }),
-    { type: "砂漠", color: "#F5DEB3" }
-  ]);
-}
-
-function assignTerrain(index, terrainPool) {
-  if (index >= positions.length) return true;
-  for (let i = 0; i < terrainPool.length; i++) {
-    const terrain = terrainPool[i];
-    if (!positions[index].neighbors.some(nIdx => positions[nIdx].tile?.type === terrain.type)) {
-      positions[index].tile = terrain;
-      const newPool = [...terrainPool];
-      newPool.splice(i, 1);
-      if (assignTerrain(index + 1, newPool)) return true;
-      positions[index].tile = null;
-    }
-  }
-  return false;
-}
-
+// スタート台形（上部に表示・矢印は左右ランダム）
 function drawStartTile(svg) {
-  const p1 = axialToPixel(1, -3);
-  const p2 = axialToPixel(2, -3);
-  const offsetY = -60;
-
-  const topLeftX = p1.x - 50;
-  const topRightX = p2.x + 50;
-  const topY = p1.y - 20 + offsetY;
-  const bottomLeftX = p1.x - 80;
-  const bottomRightX = p2.x + 80;
-  const bottomY = p1.y + 80 + offsetY;
-
+  const x = 400, y = 80;
+  const width = 160, height = 70, offset = 50;
   const points = [
-    [topLeftX, topY],
-    [topRightX, topY],
-    [bottomRightX, bottomY],
-    [bottomLeftX, bottomY]
-  ].map(p => `${p[0]},${p[1]}`).join(" ");
-
+    `${x - width/2},${y}`,
+    `${x + width/2},${y}`,
+    `${x + width/2 - offset},${y + height}`,
+    `${x - width/2 + offset},${y + height}`
+  ];
   const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-  polygon.setAttribute("points", points);
-  polygon.setAttribute("fill", "#87CEFA");
+  polygon.setAttribute("points", points.join(" "));
+  polygon.setAttribute("fill", "#87CEEB");
   polygon.setAttribute("stroke", "#333");
   polygon.setAttribute("stroke-width", "2");
   svg.appendChild(polygon);
 
-  const centerX = (topLeftX + topRightX) / 2;
-  const textY = topY + 40;
-  const arrowY = textY + 60;
-
-  const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-  text.setAttribute("x", centerX);
-  text.setAttribute("y", textY);
-  text.setAttribute("text-anchor", "middle");
-  text.setAttribute("font-size", "22");
-  text.setAttribute("fill", "black");
-  text.textContent = "スタート";
-  svg.appendChild(text);
+  const textStart = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  textStart.setAttribute("x", x);
+  textStart.setAttribute("y", y + 26);
+  textStart.setAttribute("text-anchor", "middle");
+  textStart.setAttribute("font-size", "20");
+  textStart.setAttribute("font-weight", "bold");
+  textStart.setAttribute("fill", "black");
+  textStart.textContent = "スタート";
+  svg.appendChild(textStart);
 
   const arrow = document.createElementNS("http://www.w3.org/2000/svg", "text");
-  arrow.setAttribute("x", centerX);
-  arrow.setAttribute("y", arrowY);
+  arrow.setAttribute("x", x);
+  arrow.setAttribute("y", y + 56);
   arrow.setAttribute("text-anchor", "middle");
-  arrow.setAttribute("font-size", "80");
+  arrow.setAttribute("font-size", "34");
+  arrow.setAttribute("font-weight", "900");
   arrow.setAttribute("fill", "red");
-  arrow.setAttribute("font-weight", "bold");
   arrow.textContent = Math.random() < 0.5 ? "→" : "←";
   svg.appendChild(arrow);
 }
 
-function shuffleArray(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
+// ==============================
+// 生成フロー
+// ==============================
+function generateMap() {
+  const svg = document.getElementById("map");
+  svg.innerHTML = "";
+
+  drawStartTile(svg);
+  preparePositions();
+
+  const terrainPool = getShuffledTerrainList();
+
+  // 地形割り当て（隣接同種なし）— リトライで安定化
+  let ok = assignTerrainWithConstraints(terrainPool);
+  let tries = 0;
+  while (!ok && tries < 8) {
+    shuffleArray(terrainPool);
+    ok = assignTerrainWithConstraints(terrainPool);
+    tries++;
   }
-}
-
-function shuffleCopy(arr) {
-  const copy = [...arr];
-  shuffleArray(copy);
-  return copy;
-}
-
-document.getElementById("shufflePlayers").addEventListener("click", () => {
-  const inputs = document.querySelectorAll("#playerInputArea input");
-  const names = Array.from(inputs).map(input => input.value.trim()).filter(name => name !== "");
-
-  if (names.length < 2) {
-    alert("プレイヤーは最低2人必要です。");
+  if (!ok) {
+    alert("地形配置（隣接同種なし）に失敗しました。もう一度お試しください。");
     return;
   }
 
-  const shuffled = shuffleCopy(names);
-  document.getElementById("playerOrder").textContent = "順番: " + shuffled.join(" → ");
-  document.getElementById("generateButton").disabled = false;
-});
+  // 地形描画
+  positions.forEach(pos => drawHex(svg, pos.x, pos.y, pos.tile.color));
 
+  // 数字割り当て（同地形で同数字NG、6/8隣接NG）
+  const placed = assignNumbersWithConstraints();
+  if (!placed) {
+    alert("数字配置（制約付き）に失敗しました。再生成してください。");
+    return;
+  }
+
+  // 数字描画
+  placed.forEach((num, i) => {
+    if (num !== null) drawNumber(svg, positions[i].x, positions[i].y, num);
+  });
+
+  // 表示
+  showTerrainCounts();
+  showSeaOrder();
+}
+
+// ==============================
+// 情報表示
+// ==============================
 function showTerrainCounts() {
-  const counts = {};
-  for (const pos of positions) {
-    const type = pos.tile?.type;
-    if (!type ) continue;
-    counts[type] = (counts[type] || 0) + 1;
+  const counts = { "木": 0, "煉瓦": 0, "羊": 0, "麦": 0, "岩": 0, "砂漠": 0 };
+  for (const p of positions) {
+    if (!p.tile?.type) continue;
+    counts[p.tile.type] = (counts[p.tile.type] || 0) + 1;
   }
-
   let html = "<strong>地形タイルの内訳:</strong><br>";
-  const order = ["木", "煉瓦", "羊", "麦", "岩","砂漠"];
-  for (const key of order) {
-    html += `${key} --- ${counts[key] || 0}枚<br>`;
-  }
-
+  const order = ["木", "煉瓦", "羊", "麦", "岩", "砂漠"];
+  for (const key of order) html += `${key} --- ${counts[key]}枚<br>`;
   document.getElementById("terrainCountDisplay").innerHTML = html;
 }
 
 function showSeaOrder() {
-  const labels = ["木", "煉瓦", "羊", "麦", "岩",  "？"];
+  const labels = ["木", "煉瓦", "羊", "麦", "岩", "？"];
   const shuffled = shuffleCopy(labels);
-  const html = "<strong>海タイルの順番:</strong><br>スタート から " + shuffled.join(" → ");
+  const html = "<strong>海タイルの順番:</strong><br>スタート → " + shuffled.join(" → ");
   document.getElementById("seaOrderDisplay").innerHTML = html;
 }
