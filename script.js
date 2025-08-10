@@ -313,7 +313,7 @@ function drawNumber(svg, cx, cy, num) {
 // スタート台形（上部に表示・矢印は左右ランダム）
 function drawStartTile(svg) {
   const x = 400, y = 80;
-  const width = 160, height = 70, offset = 50;
+  const width = 260, height = 70, offset = 50;
   const points = [
     `${x - width/2},${y}`,
     `${x + width/2},${y}`,
