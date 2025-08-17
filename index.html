@@ -12,7 +12,7 @@
   <!-- ✅ プレイヤー選択（JSで6人のチェックボックスを自動生成します） -->
   <div id="playerInputArea"></div>
 
-  <!-- ✅ 地形枚数固定オプション（任意。未チェック=ランダム） -->
+  <!-- ✅ 地形枚数固定オプション（任意） -->
   <div id="terrainOptions" style="margin: 10px 0;">
     <label>
       <input type="checkbox" id="fixedTerrain" />
@@ -20,13 +20,12 @@
     </label>
   </div>
 
-  <!-- ✅ 人数選択（4人/5人の切り替え） -->
+  <!-- ✅ 5人用モード（ON/OFF） -->
   <div style="margin:10px 0;">
-    <label for="playerCount">人数選択:</label>
-    <select id="playerCount">
-      <option value="4" selected>4人用</option>
-      <option value="5">5人用</option>
-    </select>
+    <label>
+      <input type="checkbox" id="fiveMode" />
+      5人用モード（ONで5人用）
+    </label>
   </div>
 
   <!-- 順番表示 -->
@@ -41,15 +40,20 @@
   <!-- ✅ 一発ボタン：順番決定＆マップ生成 -->
   <div class="controls">
     <button id="decideAndGenerate">順番を決めてマップ生成</button>
-
     <!-- 互換用：旧コードで参照していても落ちないように残す（非表示） -->
     <button id="generateButton" disabled style="display:none;">マップを自動生成</button>
   </div>
 
   <!-- SVGマップ -->
-  <div class="svg-container">
-    <svg id="map" viewBox="0 0 800 700" preserveAspectRatio="xMidYMid meet"></svg>
-  </div>
+  <div class="svg-container" style="height: calc(100vh - 360x);">
+  <svg
+    id="map"
+    viewBox="0 0 900 800"
+    width="250%"
+    height="200%"
+    preserveAspectRatio="xMidYMid meet">
+  </svg>
+</div>
 
   <script src="script.js"></script>
 </body>
