@@ -69,6 +69,15 @@ button:hover {
   background-color: #45a049;
 }
 
+/* 操作エリア */
+.controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 8px 0 6px;
+}
+
 /* 順番表示 */
 #playerOrder {
   font-weight: bold;
@@ -84,15 +93,38 @@ button:hover {
   border-radius: 4px;
   margin-top: 8px;
   font-size: 14px;
+  word-break: break-word;
+  line-height: 1.5;
 }
 
-/* マップ */
+/* SVGコンテナ（横スクロール抑止 & 余白） */
+.svg-container {
+  width: 100%;
+  overflow: hidden;
+  padding: 4px 0;
+}
+
+/* マップ（レスポンシブ） */
 #map {
   display: block;
   margin: 12px auto;
   background-color: #e0f7fa;
   border: 1px solid #ccc;
   border-radius: 6px;
+  width: 100%;
+  max-width: 900px;
+  height: auto;
+}
+
+/* フォーム系の最小整形 */
+select, label, input[type="checkbox"] {
+  font-size: 14px;
+}
+select {
+  padding: 4px 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
 }
 
 /* スマホ対応 */
@@ -104,4 +136,11 @@ button:hover {
   button {
     width: 100%;
   }
+  h1 {
+    font-size: 1.5em;
+    margin-bottom: 6px;
+  }
 }
+
+
+
