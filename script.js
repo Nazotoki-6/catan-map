@@ -84,8 +84,10 @@ const hexRadius = 50;
 const hexWidth = Math.sqrt(3) * hexRadius;
 const hexHeight = 2 * hexRadius;
 
-const numberTokens = [2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12];
+// 基本の数字チップ袋（4人用 18個）
+const numberTokens4p = [2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12];
 
+// 4人用の固定レイアウト（3-4-5-4-3）
 const axialLayout = [
   { q: 0, r: -2 }, { q: 1, r: -2 }, { q: 2, r: -2 },
   { q: -1, r: -1 }, { q: 0, r: -1 }, { q: 1, r: -1 }, { q: 2, r: -1 },
@@ -95,24 +97,64 @@ const axialLayout = [
 ];
 
 const terrainTypes = [
-  { type: "木", color: "#228B22" },
+  { type: "木",  color: "#228B22" },
   { type: "煉瓦", color: "#B22222" },
-  { type: "羊", color: "#7CFC00" },
-  { type: "麦", color: "#DAA520" },
-  { type: "岩", color: "#A9A9A9" },
+  { type: "羊",  color: "#7CFC00" },
+  { type: "麦",  color: "#DAA520" },
+  { type: "岩",  color: "#A9A9A9" },
   { type: "砂漠", color: "#EDC9Af" }
 ];
 
 let positions = []; // { index, q, r, x, y, neighbors[], tile }
 
 // ==============================
-// 地形プール（固定/ランダム切り替え）
+// 人数選択UI
 // ==============================
+function isFiveSelected() {
+  return document.getElementById("playerCount")?.value === "5";
+}
+
+// 任意段数 rows → 軸座標を生成（行ごと中央寄せ）
+function genAxialsByRows(rows) {
+  const radius = Math.max(...rows);
+  const all = [];
+  for (let q = -radius; q <= radius; q++) {
+    const r1 = Math.max(-radius, -q - radius);
+    const r2 = Math.min(radius,  -q + radius);
+    for (let r = r1; r <= r2; r++) all.push({ q, r });
+  }
+  const rMin = -Math.floor(rows.length / 2);
+  const rMax = rMin + rows.length - 1;
+
+  const byR = new Map();
+  for (const p of all) {
+    if (p.r < rMin || p.r > rMax) continue;
+    const arr = byR.get(p.r) || [];
+    arr.push(p); byR.set(p.r, arr);
+  }
+
+  const out = [];
+  for (let r = rMin; r <= rMax; r++) {
+    const line = (byR.get(r) || []).sort((a,b)=>a.q-b.q);
+    const L = rows[r - rMin];
+    const start = Math.floor((line.length - L) / 2);
+    out.push(...line.slice(start, start + L));
+  }
+  return out;
+}
+
+// ==============================
+// 地形プール（4人用＝14枚ルール／5人用＝前回どおり）
+// ==============================
+
+// 4人用：木・煉瓦・麦・岩の合計14枚（＝4枚×2種＋3枚×2種）／羊=4／砂漠=1
+// 固定チェックONなら従来の固定配分（木4, 煉瓦3, 羊4, 麦4, 岩3）も選べます。
 function getShuffledTerrainList() {
   const fixed = document.getElementById("fixedTerrain")?.checked;
   let pool;
 
   if (fixed) {
+    // 従来の固定配分（19枚）
     pool = [
       ...Array(4).fill("木"),
       ...Array(3).fill("煉瓦"),
@@ -122,22 +164,41 @@ function getShuffledTerrainList() {
       "砂漠"
     ];
   } else {
-    // ランダム：木＋煉瓦=7、麦＋岩=7、羊=4、砂漠=1
-    const woodCount = Math.random() < 0.5 ? 4 : 3;
-    const brickCount = 7 - woodCount;
-    const wheatCount = Math.random() < 0.5 ? 4 : 3;
-    const oreCount = 7 - wheatCount;
+    // 新ランダム：4になる資源を2つランダムに選び、残り2つは3（木2枚などは発生しない）
+    const majors = ["木","煉瓦","麦","岩"];
+    const fourUps = shuffleCopy(majors).slice(0, 2);  // 4枚になる資源 2種
+    const counts = { 木:3, 煉瓦:3, 麦:3, 岩:3, 羊:4, 砂漠:1 };
+    for (const r of fourUps) counts[r] = 4;
+
     pool = [
-      ...Array(woodCount).fill("木"),
-      ...Array(brickCount).fill("煉瓦"),
-      ...Array(4).fill("羊"),
-      ...Array(wheatCount).fill("麦"),
-      ...Array(oreCount).fill("岩"),
-      "砂漠"
+      ...Array(counts["木"]).fill("木"),
+      ...Array(counts["煉瓦"]).fill("煉瓦"),
+      ...Array(counts["羊"]).fill("羊"),
+      ...Array(counts["麦"]).fill("麦"),
+      ...Array(counts["岩"]).fill("岩"),
+      ...Array(counts["砂漠"]).fill("砂漠"),
     ];
   }
 
-  // オブジェクト化してシャッフル
+  const arr = pool.map(t => terrainTypes.find(x => x.type === t));
+  return shuffleCopy(arr);
+}
+
+// 5人用：木/煉瓦/麦/岩は各4〜5（2資源だけ5枚）、羊=5、砂漠=1 → 合計24
+function getShuffledTerrainList5p() {
+  const majors = ["木","煉瓦","麦","岩"];
+  const picks  = shuffleCopy(majors).slice(0, 2); // 5枚にする2資源
+  const counts = { 木:4, 煉瓦:4, 麦:4, 岩:4, 羊:5, 砂漠:1 };
+  for (const p of picks) counts[p] = 5;
+
+  const pool = [
+    ...Array(counts["木"]).fill("木"),
+    ...Array(counts["煉瓦"]).fill("煉瓦"),
+    ...Array(counts["羊"]).fill("羊"),
+    ...Array(counts["麦"]).fill("麦"),
+    ...Array(counts["岩"]).fill("岩"),
+    ...Array(counts["砂漠"]).fill("砂漠"),
+  ];
   const arr = pool.map(t => terrainTypes.find(x => x.type === t));
   return shuffleCopy(arr);
 }
@@ -145,8 +206,8 @@ function getShuffledTerrainList() {
 // ==============================
 // 隣接計算（六角グリッド）
 // ==============================
-function preparePositions() {
-  positions = axialLayout.map(({ q, r }, index) => {
+function preparePositions(axials) {
+  positions = axials.map(({ q, r }, index) => {
     const { x, y } = axialToPixel(q, r);
     return { index, q, r, x, y, neighbors: [], tile: null };
   });
@@ -174,7 +235,7 @@ function axialToPixel(q, r) {
 // 地形割り当て：同地形の隣接禁止（バックトラッキング）
 // ==============================
 function assignTerrainWithConstraints(terrainPool) {
-  // 難しい地点から埋めると成功率UP：次数（隣接数）が多い順に並べ替え
+  // 難しい地点から埋めると成功率UP：次数（隣接数）が多い順
   const order = positions
     .map((p, i) => ({ i, deg: p.neighbors.length }))
     .sort((a, b) => b.deg - a.deg)
@@ -207,8 +268,37 @@ function assignTerrainWithConstraints(terrainPool) {
 // ==============================
 // 数字割り当て：同地形で同じ数字NG、6/8隣接NG（バックトラッキング）
 // ==============================
+
+// 5人用専用の数字袋（計23枚）
+// 2×2, 12×1, 3×2 & 11×3, 4×2 & 10×3, 5×2 & 9×3, 6×2 & 8×3
+function buildNumberBag5p() {
+  const bag = [];
+  bag.push(2,2,12);               // 2:2, 12:1
+  bag.push(3,3,11,11,11);         // 3:2, 11:3
+  bag.push(4,4,10,10,10);         // 4:2, 10:3
+  bag.push(5,5,9,9,9);            // 5:2, 9:3
+  bag.push(6,6,8,8,8);            // 6:2, 8:3
+  return shuffleCopy(bag);         // ランダム順にして配置
+}
+
+// 4人用は必要数（18）に合わせて基本袋を使用、5人用は上記の専用袋
+function buildNumberBag(need) {
+  if (isFiveSelected()) {
+    // 5人用は常に上の固定比率袋（needは理論上23）
+    return buildNumberBag5p();
+  }
+  // 4人用：必要数に応じて基本袋を繰り返して切り出し
+  const bag = [];
+  while (bag.length < need) bag.push(...numberTokens4p);
+  bag.length = need;
+  return shuffleCopy(bag);
+}
+
 function assignNumbersWithConstraints() {
-  const nums = shuffleCopy(numberTokens); // ちょっとランダム性を出す
+  // 砂漠以外のセル
+  const landIndices = positions.map((p,i)=> p.tile?.type !== "砂漠" ? i : -1).filter(i=>i>=0);
+  const nums = buildNumberBag(landIndices.length);
+
   const usedByTerrain = new Map(); // 地形タイプ -> Set(使った数字)
   positions.forEach(p => {
     if (p.tile && !usedByTerrain.has(p.tile.type)) usedByTerrain.set(p.tile.type, new Set());
@@ -216,10 +306,10 @@ function assignNumbersWithConstraints() {
 
   const placed = Array(positions.length).fill(null);
 
-  // 難所（隣接多い）から置く
+  // 難所（隣接多い）から（砂漠は順番上で飛ばす）
   const order = positions
-    .map((p, i) => ({ i, deg: p.neighbors.length, desert: p.tile.type === "砂漠" }))
-    .sort((a, b) => (b.deg - a.deg)) // 砂漠は後回しになる
+    .map((p, i) => ({ i, deg: p.neighbors.length }))
+    .sort((a, b) => (b.deg - a.deg))
     .map(o => o.i);
 
   function okToPlace(i, num) {
@@ -356,9 +446,15 @@ function generateMap() {
   svg.innerHTML = "";
 
   drawStartTile(svg);
-  preparePositions();
 
-  const terrainPool = getShuffledTerrainList();
+  const five = isFiveSelected();
+
+  // 段数→座標
+  const axials = five ? genAxialsByRows([4,5,6,5,4]) : axialLayout.slice();
+  preparePositions(axials);
+
+  // 資源プール（4人用は14枚ルール／5人用は既出ルール）
+  const terrainPool = five ? getShuffledTerrainList5p() : getShuffledTerrainList();
 
   // 地形割り当て（隣接同種なし）— リトライで安定化
   let ok = assignTerrainWithConstraints(terrainPool);
@@ -376,7 +472,7 @@ function generateMap() {
   // 地形描画
   positions.forEach(pos => drawHex(svg, pos.x, pos.y, pos.tile.color));
 
-  // 数字割り当て（同地形で同数字NG、6/8隣接NG）
+  // 数字割り当て（同地形で同数字NG、6/8隣接NG）— 5人用は固定比率袋
   const placed = assignNumbersWithConstraints();
   if (!placed) {
     alert("数字配置（制約付き）に失敗しました。再生成してください。");
@@ -408,9 +504,43 @@ function showTerrainCounts() {
   document.getElementById("terrainCountDisplay").innerHTML = html;
 }
 
+// 5人用：海タイル順番（新）＝ E → N → E×3 → N → E×2
+// E=既存（木/煉瓦/羊/麦/岩/？）、N=小無/小無/小？/小羊（Nは2回出現）
 function showSeaOrder() {
-  const labels = ["木", "煉瓦", "羊", "麦", "岩", "？"];
-  const shuffled = shuffleCopy(labels);
-  const html = "<strong>海タイルの順番:</strong><br>スタート から " + shuffled.join(" → ");
+  const baseLabels = ["木", "煉瓦", "羊", "麦", "岩", "？"];
+
+  // 4人用は従来通り
+  if (!isFiveSelected?.() || !isFiveSelected()) {
+    const shuffled = shuffleCopy(baseLabels);
+    const html = "<strong>海タイルの順番:</strong><br>スタート から " + shuffled.join(" → ");
+    document.getElementById("seaOrderDisplay").innerHTML = html;
+    return;
+  }
+
+  // 5人用：新たな海タイル（小）
+  const smallPool = ["小無", "小無", "小？", "小羊"];
+  const base = shuffleCopy(baseLabels);
+  const small = shuffleCopy(smallPool);
+  const seq = [];
+
+  // E → N → E×3 → N → E×2
+  if (base.length) seq.push(base.pop());
+  const idxFirstSmall = small.findIndex(s => s === "小無");
+  if (idxFirstSmall >= 0) {
+    seq.push(small.splice(idxFirstSmall, 1)[0]);
+  } else {
+    seq.push(small.length ? small.pop() : "小無");
+  }
+  for (let i = 0; i < 3; i++) {
+    if (base.length === 0) base.push(...shuffleCopy(baseLabels));
+    seq.push(base.pop());
+  }
+  seq.push(small.length ? small.pop() : "小？");
+  for (let i = 0; i < 2; i++) {
+    if (base.length === 0) base.push(...shuffleCopy(baseLabels));
+    seq.push(base.pop());
+  }
+
+  const html = "<strong>海タイルの順番（5人用）:</strong><br>スタート から " + seq.join(" → ");
   document.getElementById("seaOrderDisplay").innerHTML = html;
 }
