@@ -20,6 +20,15 @@
     </label>
   </div>
 
+  <!-- ✅ 人数選択（4人/5人の切り替え） -->
+  <div style="margin:10px 0;">
+    <label for="playerCount">人数選択:</label>
+    <select id="playerCount">
+      <option value="4" selected>4人用</option>
+      <option value="5">5人用</option>
+    </select>
+  </div>
+
   <!-- 順番表示 -->
   <div id="playerOrder"></div>
 
@@ -35,10 +44,6 @@
 
     <!-- 互換用：旧コードで参照していても落ちないように残す（非表示） -->
     <button id="generateButton" disabled style="display:none;">マップを自動生成</button>
-
-    <!-- （任意）ルールページを使う場合はコメントアウトを外してください
-    <a href="rules.html" class="rule-link" target="_blank">📖 ルールを見る</a>
-    -->
   </div>
 
   <!-- SVGマップ -->
@@ -49,4 +54,3 @@
   <script src="script.js"></script>
 </body>
 </html>
-
