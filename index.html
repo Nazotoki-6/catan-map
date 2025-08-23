@@ -28,6 +28,14 @@
     </label>
   </div>
 
+  <!-- ✅ 同じ地形の隣接禁止（ONで禁止 / OFFで許可） -->
+  <div style="margin:10px 0;">
+    <label>
+      <input type="checkbox" id="banSameTerrainAdj" checked />
+      同じ地形の隣接を禁止
+    </label>
+  </div>
+
   <!-- 順番表示 -->
   <div id="playerOrder"></div>
 
@@ -45,19 +53,11 @@
   </div>
 
   <!-- SVGマップ -->
-  <div class="svg-container" style="height: calc(100vh - 320x);">
-  <svg
-    id="map"
-    viewBox="0 0 900 800"
-    width="150%"
-    height="150%"
-    preserveAspectRatio="xMidYMid meet">
-  </svg>
-</div>
+  <div class="svg-container">
+    <svg id="map" viewBox="0 0 800 700" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
 
   <script src="script.js"></script>
 </body>
 </html>
-
-
 
