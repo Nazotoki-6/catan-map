@@ -42,7 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ==============================
-// ユーティリティ（シャッフル）
+// ユーティリティ（シャッフルなど）
 // ==============================
 function shuffleCopy(array) {
   const arr = array.slice();
@@ -85,7 +85,7 @@ const hexRadius = 50;
 const hexWidth = Math.sqrt(3) * hexRadius;
 const hexHeight = 2 * hexRadius;
 
-// 基本の数字チップ袋（4人用 18個）
+// 4人用の数字チップ袋（18個）
 const numberTokens4p = [2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12];
 
 // 4人用の固定レイアウト（3-4-5-4-3）
@@ -97,26 +97,7 @@ const axialLayout = [
   { q: -2, r: 2 }, { q: -1, r: 2 }, { q: 0, r: 2 }
 ];
 
-const terrainTypes = [
-  { type: "木",  color: "#228B22" },
-  { type: "煉瓦", color: "#B22222" },
-  { type: "羊",  color: "#7CFC00" },
-  { type: "麦",  color: "#DAA520" },
-  { type: "岩",  color: "#A9A9A9" },
-  { type: "砂漠", color: "#EDC9Af" }
-];
-
-let positions = []; // { index, q, r, x, y, neighbors[], tile }
-let coordToIndex = new Map(); // q,r → index
-
-// ==============================
-// 人数選択UI（チェックボックス対応）
-// ==============================
-function isFiveSelected() {
-  return document.getElementById("fiveMode")?.checked === true;
-}
-
-// 任意段数 rows → 軸座標を生成（行ごと中央寄せ）
+// ✅ 5人用で使う：任意段数 rows → 軸座標を生成（行ごと中央寄せ）
 function genAxialsByRows(rows) {
   const radius = Math.max(...rows);
   const all = [];
@@ -145,8 +126,27 @@ function genAxialsByRows(rows) {
   return out;
 }
 
+// 地形タイプ定義
+const terrainTypes = [
+  { type: "木",  color: "#228B22" },
+  { type: "煉瓦", color: "#B22222" },
+  { type: "羊",  color: "#7CFC00" },
+  { type: "麦",  color: "#DAA520" },
+  { type: "岩",  color: "#A9A9A9" },
+  { type: "砂漠", color: "#EDC9Af" }
+];
+
+let positions = []; // { index, q, r, x, y, neighbors[], tile }
+let coordToIndex = new Map(); // q,r → index
+
 // ==============================
-// 地形プール
+// 5人モード判定
+// ==============================
+function isFiveSelected() {
+  return document.getElementById("fiveMode")?.checked === true;
+}
+// ==============================
+// 地形プール（4人用 / 5人用）
 // ==============================
 function getShuffledTerrainList() {
   const fixed = document.getElementById("fixedTerrain")?.checked;
@@ -163,7 +163,7 @@ function getShuffledTerrainList() {
     ];
   } else {
     const majors = ["木","煉瓦","麦","岩"];
-    const fourUps = shuffleCopy(majors).slice(0, 2);
+    const fourUps = shuffleCopy(majors).slice(0, 2); // 4枚にする2資源
     const counts = { 木:3, 煉瓦:3, 麦:3, 岩:3, 羊:4, 砂漠:1 };
     for (const r of fourUps) counts[r] = 4;
 
@@ -182,7 +182,7 @@ function getShuffledTerrainList() {
 
 function getShuffledTerrainList5p() {
   const majors = ["木","煉瓦","麦","岩"];
-  const picks  = shuffleCopy(majors).slice(0, 2);
+  const picks  = shuffleCopy(majors).slice(0, 2); // 5枚にする2資源
   const counts = { 木:4, 煉瓦:4, 麦:4, 岩:4, 羊:5, 砂漠:1 };
   for (const p of picks) counts[p] = 5;
 
@@ -207,7 +207,6 @@ function preparePositions(axials) {
     return { index, q, r, x, y, neighbors: [], tile: null };
   });
 
-  // 座標→インデックスのMapを作成
   coordToIndex = new Map(positions.map((p,i) => [`${p.q},${p.r}`, i]));
 
   // 六角距離1を隣接とする
@@ -230,9 +229,11 @@ function axialToPixel(q, r) {
 }
 
 // ==============================
-// 地形割り当て：隣接禁止
+// 地形割り当て：隣接禁止ON/OFF対応
 // ==============================
 function assignTerrainWithConstraints(terrainPool) {
+  const banAdj = document.getElementById("banSameTerrainAdj")?.checked;
+
   const order = positions
     .map((p, i) => ({ i, deg: p.neighbors.length }))
     .sort((a, b) => b.deg - a.deg)
@@ -244,8 +245,14 @@ function assignTerrainWithConstraints(terrainPool) {
 
     for (let i = 0; i < pool.length; i++) {
       const t = pool[i];
-      const conflict = positions[idx].neighbors.some(nIdx => positions[nIdx].tile?.type === t.type);
-      if (conflict) continue;
+
+      // レ点ONのときだけ「同じ地形の隣接禁止」をチェック
+      if (banAdj) {
+        const conflict = positions[idx].neighbors.some(
+          nIdx => positions[nIdx].tile?.type === t.type
+        );
+        if (conflict) continue;
+      }
 
       positions[idx].tile = t;
       const next = pool.slice();
@@ -259,13 +266,12 @@ function assignTerrainWithConstraints(terrainPool) {
 }
 
 // ==============================
-// 数字割り当て：制約
+// 数字袋の構築
 // ==============================
-// 5人用の数字袋：2と12の合計は常に3枚にし、どちらかが2枚・もう片方が1枚
+
+// 5人用：2と12の合計を常に3枚（どちらかが2枚、もう一方は1枚）
 function buildNumberBag5p() {
   const bag = [];
-
-  // 2 or 12 のどちらかを 2枚、もう一方を 1枚 にする
   const twoIsDouble = Math.random() < 0.5; // true: 2が2枚 / false: 12が2枚
   const twoCount = twoIsDouble ? 2 : 1;
   const twelveCount = twoIsDouble ? 1 : 2;
@@ -273,13 +279,12 @@ function buildNumberBag5p() {
   for (let i = 0; i < twoCount; i++) bag.push(2);
   for (let i = 0; i < twelveCount; i++) bag.push(12);
 
-  // 残りは 3/11, 4/10, 5/9, 6/8 の「3枚/2枚」パターンで合計23枚に調整
-  bag.push(3,3,11,11,11);      // 3×2, 11×3
-  bag.push(4,4,10,10,10);      // 4×2, 10×3
-  bag.push(5,5,9,9,9);         // 5×2, 9×3
-  bag.push(6,6,8,8,8);         // 6×2, 8×3
+  // 残り：3/11, 4/10, 5/9, 6/8 の比率固定
+  bag.push(3,3,11,11,11);
+  bag.push(4,4,10,10,10);
+  bag.push(5,5,9,9,9);
+  bag.push(6,6,8,8,8);
 
-  // 合計は (2or12で3) + 5 + 5 + 5 + 5 = 23
   return shuffleCopy(bag);
 }
 
@@ -291,34 +296,38 @@ function buildNumberBag(need) {
   return shuffleCopy(bag);
 }
 
+// ==============================
+// 数字割り当て：制約（同地形同数字NG / 6・8隣接NG / 同数字直線3連NG）
+// ==============================
 function assignNumbersWithConstraints() {
   const landIndices = positions.map((p,i)=> p.tile?.type !== "砂漠" ? i : -1).filter(i=>i>=0);
   const nums = buildNumberBag(landIndices.length);
 
-  const usedByTerrain = new Map();
+  const usedByTerrain = new Map(); // 地形タイプ -> Set(使った数字)
   positions.forEach(p => {
     if (p.tile && !usedByTerrain.has(p.tile.type)) usedByTerrain.set(p.tile.type, new Set());
   });
 
   const placed = Array(positions.length).fill(null);
 
+  // 配置順：隣接数が多い順
   const order = positions
     .map((p, i) => ({ i, deg: p.neighbors.length }))
     .sort((a, b) => (b.deg - a.deg))
     .map(o => o.i);
 
-  // 3軸（q, r, s）の直線上で3連になるのを検出
+  // 直線3連チェック用（q, r, s 軸）
   const dirs = [
-    [1, 0],   // q軸方向
-    [0, 1],   // r軸方向
-    [-1, 1],  // s軸方向（s = -q - r）
+    [1, 0],
+    [0, 1],
+    [-1, 1],
   ];
   const neighborAt = (q, r, dx, dy) => coordToIndex.get(`${q+dx},${r+dy}`);
 
   function wouldMakeThreeInRow(i, num) {
     const { q, r } = positions[i];
     for (const [dx, dy] of dirs) {
-      let count = 1; // 自身
+      let count = 1;
       // +方向
       for (let step = 1; step <= 2; step++) {
         const j = neighborAt(q, r, dx*step, dy*step);
@@ -331,7 +340,7 @@ function assignNumbersWithConstraints() {
         if (j == null || placed[j] !== num) break;
         count++;
       }
-      if (count >= 3) return true; // 直線で3連
+      if (count >= 3) return true;
     }
     return false;
   }
@@ -352,7 +361,7 @@ function assignNumbersWithConstraints() {
       }
     }
 
-    // ★ 直線3連禁止
+    // 同数字の直線3連禁止
     if (wouldMakeThreeInRow(i, num)) return false;
 
     return true;
@@ -378,6 +387,7 @@ function assignNumbersWithConstraints() {
       next.splice(p, 1);
       if (dfs(k + 1, next)) return true;
 
+      // backtrack
       set.delete(num);
       placed[i] = null;
     }
@@ -387,7 +397,6 @@ function assignNumbersWithConstraints() {
   if (!dfs(0, nums)) return null;
   return placed;
 }
-
 // ==============================
 // 描画
 // ==============================
@@ -407,13 +416,14 @@ function drawHex(svg, cx, cy, fill) {
   svg.appendChild(polygon);
 }
 
+// 出目トークン（数字のみ）
 function drawNumber(svg, cx, cy, num) {
   const isHot = num === 6 || num === 8;
 
   const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
   circle.setAttribute("cx", cx);
   circle.setAttribute("cy", cy);
-  circle.setAttribute("r", 15);
+  circle.setAttribute("r", 16);
   circle.setAttribute("fill", "white");
   circle.setAttribute("stroke", isHot ? "red" : "#000");
   circle.setAttribute("stroke-width", isHot ? "2.5" : "1.5");
@@ -478,21 +488,21 @@ function generateMap() {
   const svg = document.getElementById("map");
   svg.innerHTML = "";
 
-  // ★ サイズは常に最初のviewBox相当で描画
+  // 固定viewBox（CSSでレスポンシブ表示）
   svg.setAttribute("viewBox", "0 0 800 700");
 
   drawStartTile(svg);
 
   const five = isFiveSelected();
 
-  // 段数→座標
+  // 座標（4人：固定, 5人：4-5-6-5-4）
   const axials = five ? genAxialsByRows([4,5,6,5,4]) : axialLayout.slice();
   preparePositions(axials);
 
   // 資源プール
   const terrainPool = five ? getShuffledTerrainList5p() : getShuffledTerrainList();
 
-  // 地形割り当て（隣接同種なし）— リトライで安定化
+  // 地形割り当て（同地形隣接禁止はレ点でON/OFF）
   let ok = assignTerrainWithConstraints(terrainPool);
   let tries = 0;
   while (!ok && tries < 8) {
@@ -501,14 +511,14 @@ function generateMap() {
     tries++;
   }
   if (!ok) {
-    alert("地形配置（隣接同種なし）に失敗しました。もう一度お試しください。");
+    alert("地形配置に失敗しました。もう一度お試しください。");
     return;
   }
 
   // 地形描画
   positions.forEach(pos => drawHex(svg, pos.x, pos.y, pos.tile.color));
 
-  // 数字割り当て（制約付き）
+  // 数字割り当て（制約：同地形同数字NG／6・8隣接NG／直線3連NG）
   let placed = assignNumbersWithConstraints();
   let numTries = 0;
   while (!placed && numTries < 8) {
@@ -516,7 +526,7 @@ function generateMap() {
     numTries++;
   }
   if (!placed) {
-    alert("数字配置（制約付き）に失敗しました。再生成してください。");
+    alert("数字配置に失敗しました。再生成してください。");
     return;
   }
 
@@ -525,7 +535,7 @@ function generateMap() {
     if (num !== null) drawNumber(svg, positions[i].x, positions[i].y, num);
   });
 
-  // 表示
+  // 情報表示
   showTerrainCounts();
   showSeaOrder();
 }
@@ -546,12 +556,10 @@ function showTerrainCounts() {
 }
 
 // 海タイル順表示
-// 4人用：Eをシャッフル
-// 5人用：E → N → E×3 → N → E×2（2番目のNはランダムで小無/小羊/小？）
 function showSeaOrder() {
   const baseLabels = ["木", "煉瓦", "羊", "麦", "岩", "？"];
 
-  // 4人用
+  // 4人用：Eをシャッフル
   if (!isFiveSelected()) {
     const shuffled = shuffleCopy(baseLabels);
     const html = "🧭 <strong>海タイルの順番:</strong><br>スタート から " + shuffled.join(" → ");
@@ -559,20 +567,19 @@ function showSeaOrder() {
     return;
   }
 
-  // 5人用
+  // 5人用：E → N → E×3 → N → E×2（Nは小無/小羊/小？からランダム）
   const smallPool = ["小無", "小無", "小？", "小羊"];
   const base = shuffleCopy(baseLabels);
   const small = shuffleCopy(smallPool);
   const seq = [];
 
-  // E → N → E×3 → N → E×2
   if (base.length) seq.push(base.pop());             // E
-  seq.push(small.length ? small.pop() : "小無");     // N（ランダム）
+  seq.push(small.length ? small.pop() : "小無");     // N
   for (let i = 0; i < 3; i++) {                      // E×3
     if (base.length === 0) base.push(...shuffleCopy(baseLabels));
     seq.push(base.pop());
   }
-  seq.push(small.length ? small.pop() : "小？");     // N（残りからランダム）
+  seq.push(small.length ? small.pop() : "小？");     // N
   for (let i = 0; i < 2; i++) {                      // E×2
     if (base.length === 0) base.push(...shuffleCopy(baseLabels));
     seq.push(base.pop());
