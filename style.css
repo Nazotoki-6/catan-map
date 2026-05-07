@@ -100,6 +100,34 @@ h1 {
   user-select: none;
 }
 
+/* 生成ルール説明 */
+#ruleDescription {
+  background: #f8fbff;
+  border: 1px solid #d9e8f5;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin: 10px 0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+#ruleDescription summary {
+  cursor: pointer;
+  font-weight: bold;
+  color: #245b7a;
+  user-select: none;
+}
+
+.rule-description-inner {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #d9e8f5;
+}
+
+.rule-description-inner p {
+  margin: 8px 0;
+}
+
 /* ボタン */
 button {
   background-color: #4CAF50;
