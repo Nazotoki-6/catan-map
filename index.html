@@ -7,57 +7,56 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>カタンマップ生成アプリ</h1>
+  <div class="container">
+    <h1>カタンマップ生成アプリ</h1>
 
-  <!-- ✅ プレイヤー選択（JSで6人のチェックボックスを自動生成します） -->
-  <div id="playerInputArea"></div>
+    <!-- プレイヤー選択 -->
+    <div id="playerInputArea"></div>
 
-  <!-- ✅ 地形枚数固定オプション（任意） -->
-  <div id="terrainOptions" style="margin: 10px 0;">
-    <label>
-      <input type="checkbox" id="fixedTerrain" />
-      地形枚数を固定（木4・煉瓦3・羊4・麦4・岩3）
-    </label>
-  </div>
+    <!-- 地形枚数固定オプション -->
+    <div id="terrainOptions">
+      <label>
+        <input type="checkbox" id="fixedTerrain" />
+        地形枚数を固定（4人用：木4・煉瓦3・羊4・麦4・岩3）
+      </label>
+    </div>
 
-  <!-- ✅ 5人用モード（ON/OFF） -->
-  <div style="margin:10px 0;">
-    <label>
-      <input type="checkbox" id="fiveMode" />
-      5人用モード（ONで5人用）
-    </label>
-  </div>
+    <!-- ルール設定 -->
+    <div id="ruleOptions">
+      <label>
+        <input type="checkbox" id="fiveMode" />
+        5人用モード（ONで5人用）
+      </label>
 
-  <!-- ✅ 同じ地形の隣接禁止（ONで禁止 / OFFで許可） -->
-  <div style="margin:10px 0;">
-    <label>
-      <input type="checkbox" id="banSameTerrainAdj" checked />
-      同じ地形の隣接を禁止
-    </label>
-  </div>
+      <label>
+        <input type="checkbox" id="banSameTerrainAdj" checked />
+        同じ地形の隣接を禁止
+      </label>
+    </div>
 
-  <!-- 順番表示 -->
-  <div id="playerOrder"></div>
+    <!-- 順番表示 -->
+    <div id="playerOrder"></div>
 
-  <!-- 地形枚数表示 -->
-  <div id="terrainCountDisplay"></div>
+    <!-- 地形枚数表示 -->
+    <div id="terrainCountDisplay"></div>
 
-  <!-- 海タイル順番表示 -->
-  <div id="seaOrderDisplay"></div>
+    <!-- 海タイル順番表示 -->
+    <div id="seaOrderDisplay"></div>
 
-  <!-- ✅ 一発ボタン：順番決定＆マップ生成 -->
-  <div class="controls">
-    <button id="decideAndGenerate">順番を決めてマップ生成</button>
-    <!-- 互換用：旧コードで参照していても落ちないように残す（非表示） -->
-    <button id="generateButton" disabled style="display:none;">マップを自動生成</button>
-  </div>
+    <!-- ボタン -->
+    <div class="controls">
+      <button id="decideAndGenerate">順番を決めてマップ生成</button>
 
-  <!-- SVGマップ -->
-  <div class="svg-container">
-    <svg id="map" viewBox="0 0 800 700" preserveAspectRatio="xMidYMid meet"></svg>
+      <!-- 古いコードとの互換用。画面には表示しません。 -->
+      <button id="generateButton" disabled style="display:none;">マップを自動生成</button>
+    </div>
+
+    <!-- SVGマップ -->
+    <div class="svg-container">
+      <svg id="map" viewBox="0 0 800 700" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
   </div>
 
   <script src="script.js"></script>
 </body>
 </html>
-
