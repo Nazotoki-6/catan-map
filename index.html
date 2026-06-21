@@ -3,99 +3,142 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>カタンマップ生成アプリ</title>
-  <link rel="stylesheet" href="style.css" />
+
+  <title>カタンマップ生成</title>
+
+  <link rel="stylesheet" href="./style.css?v=12" />
 </head>
+
 <body>
-  <div class="container">
-    <h1>カタンマップ生成アプリ</h1>
+  <div class="app">
+    <header class="app-header">
+      <h1>カタンマップ生成</h1>
+      <p class="app-subtitle">
+        参加者の順番と、カタン島のマップをランダム生成します。
+      </p>
+    </header>
 
-    <!-- プレイヤー選択 -->
-    <div id="playerInputArea"></div>
+    <main>
+      <section class="panel">
+        <h2>プレイヤー選択</h2>
 
-    <!-- 地形枚数固定オプション -->
-    <div id="terrainOptions">
-      <label>
-        <input type="checkbox" id="fixedTerrain" />
-        地形枚数を固定（4人用：木4・煉瓦3・羊4・麦4・岩3）
-      </label>
-    </div>
+        <div id="playerList" class="player-list">
+          <label class="player-item">
+            <input type="checkbox" value="かず" checked />
+            <span>かず</span>
+          </label>
 
-    <!-- ルール設定 -->
-    <div id="ruleOptions">
-      <label>
-        <input type="checkbox" id="fiveMode" />
-        5人用モード（ONで5人用）
-      </label>
+          <label class="player-item">
+            <input type="checkbox" value="たけ" checked />
+            <span>たけ</span>
+          </label>
 
-      <label>
-        <input type="checkbox" id="banSameTerrainAdj" checked />
-        同じ地形の隣接を禁止
-      </label>
-    </div>
+          <label class="player-item">
+            <input type="checkbox" value="たろう" checked />
+            <span>たろう</span>
+          </label>
 
-    <!-- 生成ルール説明 -->
-    <details id="ruleDescription">
-      <summary>生成ルールを見る</summary>
+          <label class="player-item">
+            <input type="checkbox" value="つよし" />
+            <span>つよし</span>
+          </label>
 
-      <div class="rule-description-inner">
-        <strong>マップ生成ルール</strong>
+          <label class="player-item">
+            <input type="checkbox" value="ゆか" checked />
+            <span>ゆか</span>
+          </label>
 
-        <p>
-          4人用マップは「3-4-5-4-3」の19マスで生成します。
-          ランダム設定では、木・煉瓦・羊・麦・岩のうち2種類が3枚、残り3種類が4枚になり、砂漠は1枚です。
+          <label class="player-item">
+            <input type="checkbox" value="りさ" />
+            <span>りさ</span>
+          </label>
+        </div>
+
+        <button id="toggleAllButton" type="button">
+          全員ON/OFF
+        </button>
+      </section>
+
+      <section class="panel">
+        <h2>地形枚数固定オプション</h2>
+
+        <label class="option-item">
+          <input id="fixedTerrainCheck" type="checkbox" />
+          <span>4人用の地形枚数を固定する</span>
+        </label>
+
+        <p class="note">
+          固定ON：木4・煉瓦3・羊4・麦4・岩3・砂漠1
         </p>
+      </section>
 
-        <p>
-          5人用マップは「4-5-6-5-4」の24マスで生成します。
-          木・煉瓦・羊・麦・岩のうち2種類が4枚、残り3種類が5枚になり、砂漠は1枚です。
+      <section class="panel">
+        <h2>ルール設定</h2>
+
+        <label class="option-item">
+          <input id="noSameTerrainCheck" type="checkbox" checked />
+          <span>同じ地形の隣接を禁止</span>
+        </label>
+
+        <label class="option-item">
+          <input id="largeMapCheck" type="checkbox" disabled />
+          <span>大人数マップ</span>
+        </label>
+
+        <p class="note">
+          5人以上を選択すると、大人数マップが自動ONになります。
         </p>
+      </section>
 
-        <p>
-          5人以上を選択すると、自動で5人用マップになります。
-          4人以下の場合は通常マップになります。
-        </p>
+      <section class="panel rule-box">
+        <h2>生成ルール説明</h2>
 
-        <p>
-          「同じ地形の隣接を禁止」がONの場合、同じ地形同士が隣り合わないように配置します。
-          OFFにすると、同じ地形が隣り合うことを許可します。
-        </p>
+        <p>4人以下は通常マップ、5人は5人用マップ、6人は6人用マップを生成します。</p>
+        <p>数字チップは砂漠に置かず、6と8が隣り合わないように配置します。</p>
+        <p>4人用では、10%の確率で不遇資源ルールが発動します。</p>
+      </section>
 
-        <p>
-          数字チップは、6と8が隣り合わないように配置します。
-          また、同じ地形に同じ数字が入らないようにし、同じ数字が直線で3連続しないようにしています。
-        </p>
+      <section class="panel action-panel">
+        <button id="generateButton" type="button" class="main-button">
+          順番を決めてマップ生成
+        </button>
+      </section>
 
-        <p>
-          砂漠には数字チップは配置されません。
-          海タイルの順番は、スタートからランダムに表示されます。
-        </p>
-      </div>
-    </details>
+      <section class="panel result-panel">
+        <h2>順番</h2>
+        <div id="orderDisplay"></div>
+      </section>
 
-    <!-- 順番表示 -->
-    <div id="playerOrder"></div>
+      <section class="panel result-panel">
+        <h2>素材カード担当</h2>
+        <div id="cardRoleDisplay"></div>
+      </section>
 
-    <!-- 地形枚数表示 -->
-    <div id="terrainCountDisplay"></div>
+      <section class="panel result-panel">
+        <h2>地形タイルの内訳</h2>
+        <div id="terrainCountDisplay"></div>
+      </section>
 
-    <!-- 海タイル順番表示 -->
-    <div id="seaOrderDisplay"></div>
+      <section class="panel result-panel">
+        <h2>海タイルの順番</h2>
+        <div id="seaOrderDisplay"></div>
+      </section>
 
-    <!-- ボタン -->
-    <div class="controls">
-      <button id="decideAndGenerate">順番を決めてマップ生成</button>
+      <section class="panel result-panel">
+        <h2>今回の島の物語</h2>
+        <div id="storyDisplay"></div>
+      </section>
 
-      <!-- 古いコードとの互換用。画面には表示しません。 -->
-      <button id="generateButton" disabled style="display:none;">マップを自動生成</button>
-    </div>
+      <section class="panel map-panel">
+        <h2>マップ</h2>
 
-    <!-- SVGマップ -->
-    <div class="svg-container">
-      <svg id="map" viewBox="0 0 800 700" preserveAspectRatio="xMidYMid meet"></svg>
-    </div>
+        <div class="map-scroll">
+          <canvas id="mapCanvas" width="900" height="900"></canvas>
+        </div>
+      </section>
+    </main>
   </div>
 
-  <script src="script.js"></script>
+  <script src="./script.js?v=12"></script>
 </body>
 </html>
