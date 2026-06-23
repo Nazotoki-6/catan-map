@@ -1,64 +1,144 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>カタンマップ生成</title>
-  <link rel="stylesheet" href="./style.css?v=32">
+
+  <link rel="stylesheet" href="./style.css?v=12" />
 </head>
+
 <body>
   <div class="app">
     <header class="app-header">
       <h1>カタンマップ生成</h1>
-      <p class="app-subtitle">参加者の順番と、カタン島のマップをランダム生成します。</p>
+      <p class="app-subtitle">
+        参加者の順番と、カタン島のマップをランダム生成します。
+      </p>
     </header>
 
     <main>
       <section class="panel">
         <h2>プレイヤー選択</h2>
+
         <div id="playerList" class="player-list">
-          <label class="player-item"><input type="checkbox" value="かず" checked><span>かず</span></label>
-          <label class="player-item"><input type="checkbox" value="たけ" checked><span>たけ</span></label>
-          <label class="player-item"><input type="checkbox" value="たろう" checked><span>たろう</span></label>
-          <label class="player-item"><input type="checkbox" value="つよし"><span>つよし</span></label>
-          <label class="player-item"><input type="checkbox" value="ゆか" checked><span>ゆか</span></label>
-          <label class="player-item"><input type="checkbox" value="りさ"><span>りさ</span></label>
+          <label class="player-item">
+            <input type="checkbox" value="かず" checked />
+            <span>かず</span>
+          </label>
+
+          <label class="player-item">
+            <input type="checkbox" value="たけ" checked />
+            <span>たけ</span>
+          </label>
+
+          <label class="player-item">
+            <input type="checkbox" value="たろう" checked />
+            <span>たろう</span>
+          </label>
+
+          <label class="player-item">
+            <input type="checkbox" value="つよし" />
+            <span>つよし</span>
+          </label>
+
+          <label class="player-item">
+            <input type="checkbox" value="ゆか" checked />
+            <span>ゆか</span>
+          </label>
+
+          <label class="player-item">
+            <input type="checkbox" value="りさ" />
+            <span>りさ</span>
+          </label>
         </div>
-        <button id="toggleAllButton" type="button">全員ON/OFF</button>
+
+        <button id="toggleAllButton" type="button">
+          全員ON/OFF
+        </button>
       </section>
 
       <section class="panel">
         <h2>地形枚数固定オプション</h2>
-        <label class="option-item"><input id="fixedTerrainCheck" type="checkbox"><span>4人用の地形枚数を固定する</span></label>
-        <p class="note">固定ON：木4・煉瓦3・羊4・麦4・岩3・砂漠1</p>
+
+        <label class="option-item">
+          <input id="fixedTerrainCheck" type="checkbox" />
+          <span>4人用の地形枚数を固定する</span>
+        </label>
+
+        <p class="note">
+          固定ON：木4・煉瓦3・羊4・麦4・岩3・砂漠1
+        </p>
       </section>
 
       <section class="panel">
         <h2>ルール設定</h2>
-        <label class="option-item"><input id="noSameTerrainCheck" type="checkbox" checked><span>同じ地形の隣接を禁止</span></label>
-        <label class="option-item"><input id="largeMapCheck" type="checkbox" disabled><span>大人数マップ</span></label>
-        <p class="note">5人以上を選択すると、大人数マップが自動ONになります。</p>
+
+        <label class="option-item">
+          <input id="noSameTerrainCheck" type="checkbox" checked />
+          <span>同じ地形の隣接を禁止</span>
+        </label>
+
+        <label class="option-item">
+          <input id="largeMapCheck" type="checkbox" disabled />
+          <span>大人数マップ</span>
+        </label>
+
+        <p class="note">
+          5人以上を選択すると、大人数マップが自動ONになります。
+        </p>
       </section>
 
       <section class="panel rule-box">
         <h2>生成ルール説明</h2>
+
         <p>4人以下は通常マップ、5人は5人用マップ、6人は6人用マップを生成します。</p>
-        <p>同じ地形の隣接を禁止し、同じ数字や6・8もなるべく近づきすぎないように配置します。スマホではマップ全体が画面内に収まるように表示します。</p>
-        <p>数字チップは資源バランスを見ながら、自動でランダム配置されます。物語パーツは各60種類、島名は1万通りの組み合わせで生成されます。</p>
+        <p>数字チップは砂漠に置かず、6と8が隣り合わないように配置します。</p>
+        <p>4人用では、10%の確率で不遇資源ルールが発動します。</p>
       </section>
 
       <section class="panel action-panel">
-        <button id="generateButton" type="button" class="main-button">順番を決めてマップ生成</button>
+        <button id="generateButton" type="button" class="main-button">
+          順番を決めてマップ生成
+        </button>
       </section>
 
-      <section class="panel result-panel"><h2>順番</h2><div id="orderDisplay"></div></section>
-      <section class="panel result-panel"><h2>素材カード担当</h2><div id="cardRoleDisplay"></div></section>
-      <section class="panel result-panel"><h2>地形タイルの内訳</h2><div id="terrainCountDisplay"></div></section>
-      <section class="panel result-panel"><h2>海タイルの順番</h2><div id="seaOrderDisplay"></div></section>
-      <section class="panel result-panel"><h2>今回の島の物語</h2><div id="storyDisplay"></div></section>
-      <section class="panel map-panel"><h2>マップ</h2><div class="map-scroll"><canvas id="mapCanvas" width="900" height="900"></canvas></div><div class="placement-board"><h3>初期配置記録</h3><p class="note">プレイヤーと置くものを選び、マップ上の交点や辺をタップして記録できます。</p><div class="placement-control-grid"><label><span>プレイヤー</span><select id="placementPlayerSelect"></select></label><div class="placement-tools"><button id="placementHouseButton" type="button" class="placement-tool active" data-tool="house">家</button><button id="placementRoadButton" type="button" class="placement-tool" data-tool="road">道</button><button id="placementEraseButton" type="button" class="placement-tool" data-tool="erase">消す</button></div></div><div id="placementLegend" class="placement-legend"></div><button id="clearMarkersButton" type="button" class="sub-button">初期配置を全消し</button><p class="note">家は六角形の角、道は六角形の辺の近くをタップしてください。同じ場所をもう一度タップすると削除できます。</p></div><button id="generateButtonMap" type="button" class="main-button map-generate-button">もう一度マップ生成</button><button id="saveMapButton" type="button" class="save-button">マップ画像を保存</button><p class="note save-note">生成したマップをPNG画像として保存できます。</p></section>
+      <section class="panel result-panel">
+        <h2>順番</h2>
+        <div id="orderDisplay"></div>
+      </section>
+
+      <section class="panel result-panel">
+        <h2>素材カード担当</h2>
+        <div id="cardRoleDisplay"></div>
+      </section>
+
+      <section class="panel result-panel">
+        <h2>地形タイルの内訳</h2>
+        <div id="terrainCountDisplay"></div>
+      </section>
+
+      <section class="panel result-panel">
+        <h2>海タイルの順番</h2>
+        <div id="seaOrderDisplay"></div>
+      </section>
+
+      <section class="panel result-panel">
+        <h2>今回の島の物語</h2>
+        <div id="storyDisplay"></div>
+      </section>
+
+      <section class="panel map-panel">
+        <h2>マップ</h2>
+
+        <div class="map-scroll">
+          <canvas id="mapCanvas" width="900" height="900"></canvas>
+        </div>
+      </section>
     </main>
   </div>
-  <script src="./script.js?v=32"></script>
+
+  <script src="./script.js?v=12"></script>
 </body>
 </html>
