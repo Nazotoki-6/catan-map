@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>カタンマップ生成</title>
-  <link rel="stylesheet" href="./style.css?v=16">
+  <link rel="stylesheet" href="./style.css?v=32">
 </head>
 <body>
   <div class="app">
@@ -43,8 +43,8 @@
       <section class="panel rule-box">
         <h2>生成ルール説明</h2>
         <p>4人以下は通常マップ、5人は5人用マップ、6人は6人用マップを生成します。</p>
-        <p>同じ地形の隣接を禁止し、6と8はなるべく離して配置します。スマホではマップ全体が画面内に収まるように表示します。</p>
-        <p>4人用では、10%の確率で不遇資源ルールが発動します。</p>
+        <p>同じ地形の隣接を禁止し、同じ数字や6・8もなるべく近づきすぎないように配置します。スマホではマップ全体が画面内に収まるように表示します。</p>
+        <p>数字チップは資源バランスを見ながら、自動でランダム配置されます。物語パーツは各60種類、島名は1万通りの組み合わせで生成されます。</p>
       </section>
 
       <section class="panel action-panel">
@@ -56,9 +56,9 @@
       <section class="panel result-panel"><h2>地形タイルの内訳</h2><div id="terrainCountDisplay"></div></section>
       <section class="panel result-panel"><h2>海タイルの順番</h2><div id="seaOrderDisplay"></div></section>
       <section class="panel result-panel"><h2>今回の島の物語</h2><div id="storyDisplay"></div></section>
-      <section class="panel map-panel"><h2>マップ</h2><div class="map-scroll"><canvas id="mapCanvas" width="900" height="900"></canvas></div></section>
+      <section class="panel map-panel"><h2>マップ</h2><div class="map-scroll"><canvas id="mapCanvas" width="900" height="900"></canvas></div><div class="placement-board"><h3>初期配置記録</h3><p class="note">プレイヤーと置くものを選び、マップ上の交点や辺をタップして記録できます。</p><div class="placement-control-grid"><label><span>プレイヤー</span><select id="placementPlayerSelect"></select></label><div class="placement-tools"><button id="placementHouseButton" type="button" class="placement-tool active" data-tool="house">家</button><button id="placementRoadButton" type="button" class="placement-tool" data-tool="road">道</button><button id="placementEraseButton" type="button" class="placement-tool" data-tool="erase">消す</button></div></div><div id="placementLegend" class="placement-legend"></div><button id="clearMarkersButton" type="button" class="sub-button">初期配置を全消し</button><p class="note">家は六角形の角、道は六角形の辺の近くをタップしてください。同じ場所をもう一度タップすると削除できます。</p></div><button id="generateButtonMap" type="button" class="main-button map-generate-button">もう一度マップ生成</button><button id="saveMapButton" type="button" class="save-button">マップ画像を保存</button><p class="note save-note">生成したマップをPNG画像として保存できます。</p></section>
     </main>
   </div>
-  <script src="./script.js?v=16"></script>
+  <script src="./script.js?v=32"></script>
 </body>
 </html>
