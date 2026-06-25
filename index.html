@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>カタンマップ生成</title>
-  <link rel="stylesheet" href="./style.css?v=41">
+  <link rel="stylesheet" href="./style.css?v=44">
 </head>
 <body>
   <div class="app">
@@ -54,11 +54,10 @@
       <section class="panel result-panel"><h2>順番</h2><div id="orderDisplay"></div></section>
       <section class="panel result-panel"><h2>素材カード担当</h2><div id="cardRoleDisplay"></div></section>
       <section class="panel result-panel"><h2>地形タイルの内訳</h2><div id="terrainCountDisplay"></div></section>
-      <section class="panel result-panel"><h2>海タイルの順番</h2><div id="seaOrderDisplay"></div></section>
       <section class="panel result-panel"><h2>今回の島の物語</h2><div id="storyDisplay"></div></section>
       <section class="panel map-panel"><h2>マップ</h2><div class="map-scroll"><canvas id="mapCanvas" width="900" height="900"></canvas></div><div class="placement-board"><h3>初期配置記録</h3><p class="note">プレイヤーと置くものを選び、マップ上の交点や辺をタップして記録できます。</p><div class="placement-control-grid"><label><span>プレイヤー</span><select id="placementPlayerSelect"></select></label><div class="placement-tools"><button id="placementHouseButton" type="button" class="placement-tool active" data-tool="house">家</button><button id="placementRoadButton" type="button" class="placement-tool" data-tool="road">道</button><button id="placementEraseButton" type="button" class="placement-tool" data-tool="erase">消す</button></div></div><div id="placementLegend" class="placement-legend"></div><button id="clearMarkersButton" type="button" class="sub-button">初期配置を全消し</button><p class="note">家は六角形の角、道は六角形の辺の近くをタップしてください。同じ場所をもう一度タップすると削除できます。</p></div><button id="generateButtonMap" type="button" class="main-button map-generate-button">もう一度マップ生成</button><button id="saveMapButton" type="button" class="save-button">マップ画像を保存</button><p class="note save-note">生成したマップをPNG画像として保存できます。海タイル順も画像内に表示されます。</p></section>
     </main>
   </div>
-  <script src="./script.js?v=41"></script>
+  <script src="./script.js?v=44"></script>
 </body>
 </html>
