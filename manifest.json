@@ -1,0 +1,19 @@
+{
+  "name": "カタンマップ生成",
+  "short_name": "カタンマップ",
+  "description": "身内用カタンマップ生成アプリ",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#e8f7ff",
+  "theme_color": "#1565c0",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%231565c0'/%3E%3Cpath d='M256 68 404 153v206L256 444 108 359V153z' fill='%23e8f7ff'/%3E%3Cpath d='M256 108 370 174v164L256 404 142 338V174z' fill='%23f2c94c' stroke='%230d47a1' stroke-width='18'/%3E%3Cpath d='M256 108v296M142 174l228 164M370 174 142 338' stroke='%230d47a1' stroke-width='12' opacity='.5'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
