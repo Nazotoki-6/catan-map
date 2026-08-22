@@ -1,11 +1,11 @@
-const CACHE_NAME = "catan-map-app-v45";
+const CACHE_NAME = "catan-map-app-v46";
 
 const ASSETS = [
   "./",
   "./index.html",
-  "./style.css?v=45",
-  "./script.js?v=45",
-  "./manifest.json?v=45"
+  "./style.css?v=46",
+  "./script.js?v=46",
+  "./manifest.json?v=46"
 ];
 
 self.addEventListener("install", function (event) {

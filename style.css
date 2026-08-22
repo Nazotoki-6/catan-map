@@ -18,3 +18,82 @@
 .map-generate-button{margin:12px 10px 0;width:calc(100% - 20px)}
 #mapCanvas{touch-action:manipulation}
 @media(max-width:640px){.placement-control-grid{grid-template-columns:1fr}.placement-tools{grid-template-columns:repeat(3,1fr)}}
+
+
+/* v46: タブレット横画面向けレイアウト */
+@media (min-width: 900px) and (orientation: landscape) {
+  body {
+    padding: 14px;
+  }
+
+  .app,
+  main,
+  .container {
+    max-width: 1360px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  main {
+    display: grid;
+    grid-template-columns: minmax(320px, 430px) minmax(520px, 1fr);
+    gap: 16px;
+    align-items: start;
+  }
+
+  main > .panel,
+  main > .result-panel,
+  main > section {
+    margin-bottom: 12px;
+  }
+
+  .map-panel {
+    grid-column: 2;
+    grid-row: 1 / span 12;
+    position: sticky;
+    top: 12px;
+    align-self: start;
+  }
+
+  .map-panel canvas,
+  #mapCanvas {
+    max-height: calc(100vh - 190px);
+    width: auto !important;
+    max-width: 100%;
+    height: auto !important;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .map-actions,
+  .placement-controls,
+  .button-row {
+    justify-content: center;
+  }
+
+  h1 {
+    margin-top: 6px;
+    margin-bottom: 10px;
+  }
+
+  .panel {
+    padding: 14px;
+  }
+
+  .result-panel {
+    padding: 14px;
+  }
+}
+
+/* 大きめタブレット横画面ではマップをさらに見やすく */
+@media (min-width: 1100px) and (orientation: landscape) {
+  main {
+    grid-template-columns: minmax(340px, 460px) minmax(650px, 1fr);
+  }
+
+  .map-panel canvas,
+  #mapCanvas {
+    max-height: calc(100vh - 150px);
+  }
+}
