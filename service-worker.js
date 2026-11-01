@@ -1,11 +1,12 @@
-const CACHE_NAME = "catan-map-app-v47";
-
+// v49: offline app shell with reliable online updates.
+const CACHE_NAME = "catan-map-app-v49";
+const CACHE_PREFIX = "catan-map-app-";
 const ASSETS = [
   "./",
   "./index.html",
-  "./style.css?v=47",
-  "./script.js?v=47",
-  "./manifest.json?v=47"
+  "./style.css?v=49",
+  "./script.js?v=49",
+  "./manifest.json?v=49"
 ];
 
 self.addEventListener("install", function (event) {
@@ -21,13 +22,11 @@ self.addEventListener("install", function (event) {
 self.addEventListener("activate", function (event) {
   event.waitUntil(
     caches.keys().then(function (keys) {
-      return Promise.all(
-        keys.map(function (key) {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
-      );
+      return Promise.all(keys.filter(function (key) {
+        return key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME;
+      }).map(function (key) {
+        return caches.delete(key);
+      }));
     }).then(function () {
       return self.clients.claim();
     })
@@ -35,20 +34,45 @@ self.addEventListener("activate", function (event) {
 });
 
 self.addEventListener("fetch", function (event) {
-  if (event.request.method !== "GET") return;
+  const request = event.request;
+  if (request.method !== "GET") return;
 
-  event.respondWith(
-    caches.match(event.request).then(function (cachedResponse) {
-      if (cachedResponse) return cachedResponse;
+  const url = new URL(request.url);
+  const scope = new URL(self.registration.scope);
+  if (url.origin !== scope.origin || !url.pathname.startsWith(scope.pathname)) return;
 
-      return fetch(event.request).then(function (networkResponse) {
-        const responseClone = networkResponse.clone();
-        caches.open(CACHE_NAME).then(function (cache) {
-          cache.put(event.request, responseClone);
-        });
-        return networkResponse;
+  if (request.mode === "navigate") {
+    // Online: get fresh HTML. Offline: serve the saved app shell.
+    event.respondWith(
+      fetch(request).then(function (response) {
+        if (response.ok) {
+          const copy = response.clone();
+          event.waitUntil(caches.open(CACHE_NAME).then(function (cache) {
+            return cache.put(request, copy);
+          }));
+        }
+        return response;
       }).catch(function () {
-        return caches.match("./index.html");
+        return caches.match(request).then(function (cached) {
+          return cached || caches.match("./index.html");
+        });
+      })
+    );
+    return;
+  }
+
+  // Local app assets: offline-first, no accidental HTML fallback for images/JS.
+  event.respondWith(
+    caches.match(request).then(function (cached) {
+      if (cached) return cached;
+      return fetch(request).then(function (response) {
+        if (response.ok && response.type === "basic") {
+          const copy = response.clone();
+          event.waitUntil(caches.open(CACHE_NAME).then(function (cache) {
+            return cache.put(request, copy);
+          }));
+        }
+        return response;
       });
     })
   );
